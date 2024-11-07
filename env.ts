@@ -13,6 +13,7 @@ const env = createEnv({
     GITHUB_CLIENT_ID: z.string().min(1),
     GITHUB_CLIENT_SECRET: z.string().min(1),
     GITHUB_REDIRECT_URI: z.string().url(),
+    NODE_ENV: z.enum(["development", "production"]).default("development"),
   },
   /*
    * Environment variables available on the client (and server).
@@ -32,6 +33,7 @@ const env = createEnv({
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     GITHUB_REDIRECT_URI: process.env.GITHUB_REDIRECT_URI,
+    NODE_ENV: process.env.NODE_ENV,
   },
 });
 

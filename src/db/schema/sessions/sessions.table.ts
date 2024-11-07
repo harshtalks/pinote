@@ -26,6 +26,11 @@ export const sessions = sqliteTable(
     userAgent: t.text(),
     // This is a session token that is used to authenticate the user.
     sessionId: t.text().notNull(),
+    tfVerified: t
+      .integer({
+        mode: "boolean",
+      })
+      .default(false),
   },
   (table) => ({
     sessionIdIndex: t.index("sessionIndex").on(table.sessionId),

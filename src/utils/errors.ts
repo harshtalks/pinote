@@ -25,3 +25,7 @@ export class DeleteEntityError extends Data.TaggedError("DeleteEntityError")<{
 export class UncaughtError extends Data.TaggedError("UncaughtError")<{
   message: string;
 }> {}
+
+export class NoAuthenticatorError extends Data.TaggedError(
+  "NoAuthenticatorError",
+) {}
