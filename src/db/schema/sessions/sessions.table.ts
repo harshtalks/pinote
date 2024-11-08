@@ -4,6 +4,9 @@ import { prefixedId } from "../schema.helper";
 import { createdAtSchema, updatedAtSchema } from "../schema.common";
 import { users } from "../*";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { userAgent } from "next/server";
+
+export type UserAgent = ReturnType<typeof userAgent>;
 
 export const sessions = sqliteTable(
   "sessions",
@@ -23,7 +26,11 @@ export const sessions = sqliteTable(
       type?: string | undefined;
       vendor?: string | undefined;
     }>(),
-    userAgent: t.text(),
+    userAgent: t
+      .text({
+        mode: "json",
+      })
+      .$type<ReturnType<typeof userAgent>>(),
     // This is a session token that is used to authenticate the user.
     sessionId: t.text().notNull(),
     tfVerified: t

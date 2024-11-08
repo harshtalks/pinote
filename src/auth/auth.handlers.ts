@@ -5,7 +5,7 @@ import {
 } from "@oslojs/encoding";
 import { Branded } from "@/types/*";
 import { sha256 } from "@oslojs/crypto/sha2";
-import { Session, SessionInsert, User } from "@/db/schema/*";
+import { Session, SessionInsert, User, UserAgent } from "@/db/schema/*";
 import { sessionDuration, sessionReValidationDuration } from "./db.const";
 import { sessionRepo } from "@/repositories/*";
 
@@ -17,8 +17,9 @@ export const generateSessionToken = Effect.sync(() => new Uint8Array(20)).pipe(
 
 // This is a simple effect that generates a session token.
 export const createSession = (
-  token: Redacted.Redacted<string>,
   userId: Branded.UserId,
+  token: Redacted.Redacted<string>,
+  ua: UserAgent,
 ) =>
   Effect.sync(() =>
     encodeHexLowerCase(sha256(new TextEncoder().encode(Redacted.value(token)))),
@@ -29,6 +30,7 @@ export const createSession = (
           userId: userId,
           expiresAt: Duration.toMillis(sessionDuration),
           sessionId,
+          userAgent: ua,
         }) as SessionInsert,
     ),
     Effect.andThen(sessionRepo.createSession),

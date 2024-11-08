@@ -1,13 +1,10 @@
-import { Branded } from "@/types/*";
 import { getErrorMessage, UncaughtError } from "@/utils/errors";
 import { Duration, Effect } from "effect";
 import { cookies } from "next/headers";
 import env from "../../env";
 
 export const setCookie =
-  (cookieName: string) =>
-  (token: Branded.SessionId) =>
-  (expiresAt: Duration.Duration) =>
+  (cookieName: string) => (token: string) => (expiresAt: Duration.Duration) =>
     Effect.tryPromise({
       try: () => cookies(),
       catch: (error) => new UncaughtError({ message: getErrorMessage(error) }),
@@ -38,3 +35,9 @@ export const deleteCookie = (cookieName: string) =>
       }),
     ),
   );
+
+export const getCookie = (cookieName: string) =>
+  Effect.tryPromise({
+    try: () => cookies(),
+    catch: (error) => new UncaughtError({ message: getErrorMessage(error) }),
+  }).pipe(Effect.map((cookieStore) => cookieStore.get(cookieName)?.value));

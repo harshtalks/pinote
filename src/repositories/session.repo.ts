@@ -1,7 +1,7 @@
 // create session
 
 import Database from "@/db/*";
-import { Session, SessionInsert, sessions } from "@/db/schema/*";
+import { Session, SessionInsert, sessions, User } from "@/db/schema/*";
 import { Branded } from "@/types/*";
 import {
   DBError,
@@ -21,6 +21,13 @@ export const createSession = (session: SessionInsert) =>
       catch: (error) => new DBError({ message: getErrorMessage(error) }),
     }),
     Effect.andThen((result) => result[0]),
+    Effect.filterOrFail(
+      (result): result is Session => !!result,
+      () =>
+        new NoRowsReturnedError({
+          message: "no rows returned",
+        }),
+    ),
   );
 
 // This will get the session by the session id
@@ -32,6 +39,13 @@ export const getSessionBySessionId = (sessionId: Branded.SessionId) =>
       catch: (error) => new DBError({ message: getErrorMessage(error) }),
     }),
     Effect.andThen((result) => result[0]),
+    Effect.filterOrFail(
+      (result): result is Session => !!result,
+      () =>
+        new NoRowsReturnedError({
+          message: "could not find the session with the session id",
+        }),
+    ),
   );
 
 // This will get the session by the session id with the user
@@ -47,6 +61,13 @@ export const getSessionBySessionIdWithUser = (sessionId: Branded.SessionId) =>
           },
         }),
     }),
+    Effect.filterOrFail(
+      (result): result is Session & { user: User } => !!result,
+      () =>
+        new NoRowsReturnedError({
+          message: "could not find the session with the user",
+        }),
+    ),
   );
 
 // This will delete the session

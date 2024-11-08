@@ -8,6 +8,9 @@ const { createRoute, useTempehRouter, Navigate } = routeBuilder({
   // additionalBaseUrls: {
   //   EXAMPLE: "https://example.com",
   // },
+  additionalBaseUrls: {
+    GITHUB_API: "https://api.github.com",
+  },
 }).getInstance();
 
 // Since all our routes accept a required `paramsSchema`, this will be a good place to define an empty schema for routes that do not require any params.

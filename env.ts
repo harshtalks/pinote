@@ -12,7 +12,10 @@ const env = createEnv({
     DATABASE_AUTH_TOKEN: z.string().min(1),
     GITHUB_CLIENT_ID: z.string().min(1),
     GITHUB_CLIENT_SECRET: z.string().min(1),
-    GITHUB_REDIRECT_URI: z.string().url(),
+    GITHUB_REDIRECT_URI: z
+      .string()
+      .url()
+      .default("http://localhost:3000/api/auth/github/callback"),
     NODE_ENV: z.enum(["development", "production"]).default("development"),
   },
   /*

@@ -2,7 +2,7 @@ import { sqliteTable } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
 import { prefixedId } from "../schema.helper";
 import { createdAtSchema, updatedAtSchema } from "../schema.common";
-import { InferSelectModel } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 export const users = sqliteTable("users", {
   id: t.text().primaryKey().$defaultFn(prefixedId("user")),
@@ -22,4 +22,4 @@ export const users = sqliteTable("users", {
 });
 
 export type User = InferSelectModel<typeof users>;
-export type UserInsert = InferSelectModel<typeof users>;
+export type UserInsert = InferInsertModel<typeof users>;
