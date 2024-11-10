@@ -29,12 +29,16 @@ export class TfChallenges extends Effect.Service<TfChallenges>()(
 
   validateChallenge(challenge: Uint8Array) {
     return TfChallenges.pipe(
-      Effect.map((challengesRef) =>
+      Effect.map((challengesRef) => {
+        const encodedChallenge = encodeHexLowerCase(challenge);
+        const exists =
+          SynchronizedRef.get(challengesRef).hasOwnProperty(encodedChallenge);
         SynchronizedRef.update(challengesRef, (challenges) => {
-          challenges.delete(encodeHexLowerCase(challenge));
+          challenges.delete(encodedChallenge);
           return challenges;
-        }),
-      ),
+        });
+        return exists;
+      }),
     );
   }
 }

@@ -11,8 +11,10 @@ export const setCookie =
     }).pipe(
       Effect.map((cookieStore) =>
         cookieStore.set(cookieName, token, {
-          expires: Duration.toMillis(expiresAt),
-          httpOnly: true,
+          expires: Duration.toMillis(
+            Duration.sum(Duration.millis(Date.now()), expiresAt),
+          ),
+          httpOnly: false,
           path: "/",
           sameSite: "lax",
           secure: env.NODE_ENV === "production",

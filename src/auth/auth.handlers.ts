@@ -5,9 +5,10 @@ import {
 } from "@oslojs/encoding";
 import { Branded } from "@/types/*";
 import { sha256 } from "@oslojs/crypto/sha2";
-import { Session, SessionInsert, User, UserAgent } from "@/db/schema/*";
+import { Session, SessionInsert, UserAgent } from "@/db/schema/*";
 import { sessionDuration, sessionReValidationDuration } from "./db.const";
 import { sessionRepo } from "@/repositories/*";
+import { SessionWithUser } from "@/repositories/session.repo";
 
 // This is a simple effect that generates a session token.
 export const generateSessionToken = Effect.sync(() => new Uint8Array(20)).pipe(
@@ -42,15 +43,11 @@ export const validateSessionToken = (token: Redacted.Redacted<string>) =>
   ).pipe(
     Effect.andThen(Branded.SessionId),
     Effect.andThen(sessionRepo.getSessionBySessionIdWithUser),
-    Effect.andThen((session) => validateSession(Effect.succeed(session))),
+    Effect.andThen(validateSession),
   );
 
-export const validateSession = (
-  session: Effect.Effect<(Session & { user: User }) | undefined>,
-) =>
+export const validateSession = (sessionWithUser: SessionWithUser | undefined) =>
   Effect.gen(function* () {
-    const sessionWithUser = yield* session;
-
     if (!sessionWithUser) {
       return Either.left({
         user: null,

@@ -1,7 +1,8 @@
 import { cookie, GithubOAuth } from "@/auth/*";
-import { Duration, Effect } from "effect";
-import { generateState } from "arctic";
 import { getErrorMessage } from "@/utils/errors";
+import { generateState } from "arctic";
+import { Duration, Effect } from "effect";
+import { NextResponse } from "next/server";
 
 export const GET = async (request: Request) => {
   return Effect.gen(function* () {
@@ -11,7 +12,7 @@ export const GET = async (request: Request) => {
 
     const state = generateState();
 
-    const url = github.createAuthorizationURL(state, ["read:email"]);
+    const url = github.createAuthorizationURL(state, ["user:email"]);
 
     yield* cookie.setCookie("github_oauth_state")(state)(Duration.minutes(1));
 
@@ -21,7 +22,8 @@ export const GET = async (request: Request) => {
       );
     }
 
-    return Response.redirect(url);
+    // Redirect to the github oauth url
+    return NextResponse.redirect(url);
   }).pipe(
     Effect.catchAllDefect((err) =>
       Effect.succeed(

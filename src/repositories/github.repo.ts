@@ -33,12 +33,13 @@ export class GithubEmail extends Schema.Class<GithubEmail>("Github/Email")({
   visibility: Schema.NullishOr(Schema.String),
 }) {}
 
-export const getCurrentUser = (token: Redacted.Redacted<string>) =>
-  HttpClientRequest.get(GithubUserRouteInfo.navigate()).pipe(
+export const getCurrentUser = (token: Redacted.Redacted<string>) => {
+  return HttpClientRequest.get(GithubUserRouteInfo.navigate()).pipe(
     HttpClientRequest.bearerToken(Redacted.value(token)),
     HttpClient.execute,
     Effect.andThen(HttpClientResponse.schemaBodyJson(GithubUser)),
   );
+};
 
 export const getCurrentUserEmails = (token: Redacted.Redacted<string>) =>
   HttpClientRequest.get(GithubEmailsRouteInfo.navigate()).pipe(

@@ -44,7 +44,7 @@
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
-    "tempeh": "^5.0.3",
+    "tempeh": "5.0.6",
     "zod": "^3.23.8",
     "zod-validation-error": "^3.4.0"
   },

@@ -1,13 +1,13 @@
 import { object, string } from "zod";
 import createRoute, { EmptyRouteParams } from "../../../../../../route.config";
 
-const GithubSigninPage = createRoute({
-  name: "GithubSigninPage",
+const GithubSigninApiRoute = createRoute({
+  name: "GithubSigninApiRoute",
   paramsSchema: EmptyRouteParams,
-  fn: () => "/api/auth/github/signin",
+  fn: () => "/api/auth/github/sign-in",
   searchParamsSchema: object({
     redirectUrl: string().optional(),
   }),
 });
 
-export default GithubSigninPage;
+export default GithubSigninApiRoute;

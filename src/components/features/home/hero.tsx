@@ -1,6 +1,6 @@
-import GithubSigninPage from "@/app/api/auth/github/sign-in/route.info";
 import { RoundedHoverBtn } from "../global/buttons/rouded-hover";
 import { ClerkBadge } from "./clerkBadge";
+import SigninPageRoute from "@/app/(pages)/sign-in/route.info";
 
 export const Hero = () => {
   return (
@@ -15,7 +15,9 @@ export const Hero = () => {
           Pinote is a free and open-source Substack alternative that allows you
           to own your audience and content. Notion style editor, custom domain,
         </h4>
-        <RoundedHoverBtn className="mt-6">Get Started</RoundedHoverBtn>
+        <SigninPageRoute.Link params={undefined}>
+          <RoundedHoverBtn className="mt-6">Get Started</RoundedHoverBtn>
+        </SigninPageRoute.Link>
       </div>
     </section>
   );

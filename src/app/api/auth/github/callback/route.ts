@@ -19,22 +19,23 @@ import { NextResponse, userAgent } from "next/server";
 export const GET = async (request: Request) => {
   return Effect.gen(function* () {
     const url = new URL(request.url);
-    const redirectUrl = yield* cookie.getCookie("github_oauth_redirect_url");
+
+    // const redirectUrl = yield* cookie.getCookie("github_oauth_redirect_url");
+    const storedState = yield* cookie.getCookie("github_oauth_state");
 
     const code = url.searchParams.get("code");
     const state = url.searchParams.get("state");
-    const storedState = yield* cookie.getCookie("github_oauth_state");
 
     const ua = userAgent(request);
-
     if (!code || !state || !storedState || state !== storedState) {
       return NextResponse.json<StringResponseType>(
         {
-          error: "Invalid state",
+          error:
+            "Looks like the token is invalid or expired. Please try again.",
           success: false,
         },
         {
-          status: StatusCodes.TEMPORARY_REDIRECT,
+          status: StatusCodes.MOVED_TEMPORARILY,
           statusText: "Malformed or invalid state from github",
           headers: {
             Location: "/sign-in",

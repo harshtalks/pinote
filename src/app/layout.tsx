@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import ThemeProvider from "@/providers/theme.provider";
-import { Header } from "@/components/features/global/*";
 import { Inter } from "next/font/google";
 
 const calSans = localFont({
@@ -35,8 +34,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Header />
-          {children}
+          <main className="h-full">{children}</main>
         </ThemeProvider>
       </body>
     </html>

@@ -1,7 +1,13 @@
 // create session
 
 import Database from "@/db/*";
-import { Session, SessionInsert, sessions, User } from "@/db/schema/*";
+import {
+  Authenticator,
+  Session,
+  SessionInsert,
+  sessions,
+  User,
+} from "@/db/schema/*";
 import { Branded } from "@/types/*";
 import {
   DBError,
@@ -48,6 +54,14 @@ export const getSessionBySessionId = (sessionId: Branded.SessionId) =>
     ),
   );
 
+export type SessionWithUser = Session & {
+  user: User & {
+    authenticators: Array<{
+      id: Authenticator["id"];
+    }>;
+  };
+};
+
 // This will get the session by the session id with the user
 export const getSessionBySessionIdWithUser = (sessionId: Branded.SessionId) =>
   Database.pipe(
@@ -57,17 +71,18 @@ export const getSessionBySessionIdWithUser = (sessionId: Branded.SessionId) =>
         db.query.sessions.findFirst({
           where: (table, { eq }) => eq(table.sessionId, sessionId),
           with: {
-            user: true,
+            user: {
+              with: {
+                authenticators: {
+                  columns: {
+                    id: true,
+                  },
+                },
+              },
+            },
           },
         }),
     }),
-    Effect.filterOrFail(
-      (result): result is Session & { user: User } => !!result,
-      () =>
-        new NoRowsReturnedError({
-          message: "could not find the session with the user",
-        }),
-    ),
   );
 
 // This will delete the session
@@ -93,7 +108,7 @@ export const deleteSession = (sessionId: Branded.SessionId) =>
       (result): result is Session => !!result,
       () =>
         new NoRowsReturnedError({
-          message: "no rows returned",
+          message: "Something went wrong while deleting the session",
         }),
     ),
   );
@@ -110,7 +125,9 @@ export const updateSessionExpiry = (
         db
           .update(sessions)
           .set({
-            expiresAt: Duration.toMillis(time),
+            expiresAt: Duration.toMillis(
+              Duration.sum(Duration.millis(Date.now()), time),
+            ),
             updatedAt: Duration.toMillis(Date.now()),
           })
           .where(eq(sessions.sessionId, sessionId))
@@ -121,7 +138,7 @@ export const updateSessionExpiry = (
       (session): session is Session => !!session,
       () =>
         new NoRowsReturnedError({
-          message: "no rows returned",
+          message: "Something went wrong while updating the session expiry",
         }),
     ),
     Effect.catchAllDefect(
