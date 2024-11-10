@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import ThemeProvider from "@/providers/theme.provider";
 import { Inter } from "next/font/google";
+import { TRPCReactProvider } from "@/trpc/client.trpc";
 
 const calSans = localFont({
   src: "./fonts/CalSans SemiBold.woff",
@@ -34,7 +35,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main className="h-full">{children}</main>
+          <TRPCReactProvider>
+            <main className="h-full">{children}</main>
+          </TRPCReactProvider>
         </ThemeProvider>
       </body>
     </html>
