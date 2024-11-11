@@ -15,6 +15,7 @@
     "ui:add": "shadcn add"
   },
   "dependencies": {
+    "@edge-csrf/nextjs": "^2.5.2",
     "@effect/opentelemetry": "^0.39.13",
     "@effect/platform": "^0.69.19",
     "@libsql/client": "^0.14.0",
@@ -45,6 +46,7 @@
     "next-themes": "^0.4.3",
     "react": "19.0.0-rc-02c0e824-20241028",
     "react-dom": "19.0.0-rc-02c0e824-20241028",
+    "server-only": "^0.0.1",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",

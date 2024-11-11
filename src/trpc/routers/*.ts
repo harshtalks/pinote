@@ -1,8 +1,16 @@
 // All the routers
 
-import { createCallerFactory, createTRPCRouter } from "../*";
+import {
+  createCallerFactory,
+  createTRPCRouter,
+  publicProcedure,
+} from "../trpc";
 
-export const appRouter = createTRPCRouter({});
+export const appRouter = createTRPCRouter({
+  health: publicProcedure.query(() => {
+    return "Hi this is working..";
+  }),
+});
 
 /**
  * Create a server-side caller for the tRPC API.

@@ -37,7 +37,8 @@ export const sessions = sqliteTable(
       .integer({
         mode: "boolean",
       })
-      .default(false),
+      .default(false)
+      .notNull(),
   },
   (table) => ({
     sessionIdIndex: t.index("sessionIndex").on(table.sessionId),

@@ -1,7 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { Context, Effect } from "effect";
-import Database from "@/db/*";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 
 /**

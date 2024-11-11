@@ -3,7 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import ThemeProvider from "@/providers/theme.provider";
 import { Inter } from "next/font/google";
-import { TRPCReactProvider } from "@/trpc/client.trpc";
+import { TRPCReactProvider } from "@/trpc/client";
 
 const calSans = localFont({
   src: "./fonts/CalSans SemiBold.woff",
