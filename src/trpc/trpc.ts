@@ -1,7 +1,17 @@
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { Context, Effect } from "effect";
+import { Effect, Either, Redacted } from "effect";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+import Database, { provideDB } from "@/db/*";
+import { AUTH_COOKIE_NAME } from "@/auth/db.const";
+import {
+  generateSessionToken,
+  readSessionFromCookieAndValidate,
+  validateSessionToken,
+} from "@/auth/auth.handlers";
+import { fromError } from "zod-validation-error";
+import { ZodError } from "zod";
+import { TrpcCustomError } from "@/utils/errors";
 
 /**
  * 1. CONTEXT
@@ -15,23 +25,17 @@ import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adap
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: {
+export const createTRPCContext = (opts: {
   headers: Headers;
   cookies: ReadonlyRequestCookies;
-}) => {
-  return {
-    ...opts,
-  };
-};
-
-export class TRPCContext extends Context.Tag("TRPCContext")<
-  TRPCContext,
-  Awaited<ReturnType<typeof createTRPCContext>>
->() {
-  public static readonly provide = (
-    context: Awaited<ReturnType<typeof createTRPCContext>>,
-  ) => Effect.provideService(this, context);
-}
+}) => ({
+  db: Database,
+  session: readSessionFromCookieAndValidate().pipe(
+    Effect.map((session) => Either.getOrNull(session)),
+  ),
+  cookies: Effect.succeed(opts.cookies),
+  headers: Effect.succeed(opts.headers),
+});
 
 /**
  * 2. INITIALIZATION
@@ -42,11 +46,15 @@ export class TRPCContext extends Context.Tag("TRPCContext")<
  */
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
-  errorFormatter({ shape }) {
+  errorFormatter({ shape, error }) {
     return {
       ...shape,
       data: {
         ...shape.data,
+        ZodError:
+          error.cause instanceof ZodError
+            ? fromError(error.cause.errors, { includePath: true })
+            : undefined,
       },
     };
   },
@@ -74,3 +82,31 @@ export const createTRPCRouter = t.router;
  * are logged in.
  */
 export const publicProcedure = t.procedure;
+
+/**
+ * Authenticated procedure
+ *
+ * This is the base piece you use to build new queries and mutations on your tRPC API. It guarantees that a user querying is authorized, and you can access user session data.
+ */
+
+export const authenticatedProcedure = t.procedure.use(({ ctx, next }) => {
+  const sessionUpdated = ctx.session.pipe(
+    Effect.andThen((session) => {
+      if (!session) {
+        return Effect.fail(
+          new TrpcCustomError({
+            error: new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "You must be logged in to access this resource",
+            }),
+          }),
+        );
+      } else return Effect.succeed(session);
+    }),
+  );
+  return next({
+    ctx: {
+      session: sessionUpdated,
+    },
+  });
+});

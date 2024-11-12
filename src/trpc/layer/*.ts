@@ -14,4 +14,4 @@ const NodeSdkLive = NodeSdk.layer(() => ({
   ),
 }));
 
-export const ServerRuntime = ManagedRuntime.make(NodeSdkLive);
+export const trpcRunTime = ManagedRuntime.make(NodeSdkLive);

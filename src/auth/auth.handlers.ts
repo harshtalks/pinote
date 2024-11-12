@@ -6,9 +6,14 @@ import {
 import { Branded } from "@/types/*";
 import { sha256 } from "@oslojs/crypto/sha2";
 import { Session, SessionInsert, UserAgent } from "@/db/schema/*";
-import { sessionDuration, sessionReValidationDuration } from "./db.const";
+import {
+  AUTH_COOKIE_NAME,
+  sessionDuration,
+  sessionReValidationDuration,
+} from "./db.const";
 import { sessionRepo } from "@/repositories/*";
 import { SessionWithUser } from "@/repositories/session.repo";
+import { cookie } from "./*";
 
 // This is a simple effect that generates a session token.
 export const generateSessionToken = Effect.sync(() => new Uint8Array(20)).pipe(
@@ -35,6 +40,12 @@ export const createSession = (
         }) as SessionInsert,
     ),
     Effect.andThen(sessionRepo.createSession),
+  );
+
+export const readSessionFromCookieAndValidate = () =>
+  cookie.getCookie(AUTH_COOKIE_NAME).pipe(
+    Effect.andThen((v) => Redacted.make(v ?? "")),
+    Effect.andThen(validateSessionToken),
   );
 
 export const validateSessionToken = (token: Redacted.Redacted<string>) =>

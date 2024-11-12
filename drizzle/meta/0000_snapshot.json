@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "096afc72-4642-4db6-ba79-aff86dbc1e18",
+  "id": "84a6e56d-f4d6-47bf-b5f6-5ccd9c3a8c72",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "users": {
@@ -34,7 +34,7 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": 1731166605737
+          "default": 1731396430739
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -42,7 +42,7 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": 1731166605737
+          "default": 1731396430739
         },
         "avatar": {
           "name": "avatar",
@@ -111,7 +111,7 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": 1731166605737
+          "default": 1731396430739
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -119,7 +119,7 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": 1731166605737
+          "default": 1731396430739
         },
         "userId": {
           "name": "userId",
@@ -160,7 +160,7 @@
           "name": "tfVerified",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false,
           "default": false
         }
@@ -223,7 +223,7 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": 1731166605737
+          "default": 1731396430739
         },
         "updatedAt": {
           "name": "updatedAt",
@@ -231,7 +231,7 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false,
-          "default": 1731166605737
+          "default": 1731396430739
         },
         "credentialPublicKey": {
           "name": "credentialPublicKey",
@@ -253,6 +253,67 @@
         "authenticators_userId_users_id_fk": {
           "name": "authenticators_userId_users_id_fk",
           "tableFrom": "authenticators",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "usersMetadata": {
+      "name": "usersMetadata",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 1731396430739
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": 1731396430739
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "recoveryCode": {
+          "name": "recoveryCode",
+          "type": "blob",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "usersMetadata_userId_users_id_fk": {
+          "name": "usersMetadata_userId_users_id_fk",
+          "tableFrom": "usersMetadata",
           "tableTo": "users",
           "columnsFrom": [
             "userId"

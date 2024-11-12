@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { Data } from "effect";
 
 export const getErrorMessage = (error: unknown) => {
@@ -28,4 +29,12 @@ export class UncaughtError extends Data.TaggedError("UncaughtError")<{
 
 export class NoAuthenticatorError extends Data.TaggedError(
   "NoAuthenticatorError",
-) {}
+)<{ message: string }> {}
+
+export class InvalidEncryptedDataError extends Data.TaggedError(
+  "InvalidEncryptedDataError",
+)<{ message: string }> {}
+
+export class TrpcCustomError extends Data.TaggedError("TrpcError")<{
+  error: TRPCError;
+}> {}

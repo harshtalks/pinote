@@ -23,7 +23,10 @@ export const getAuthenticatorById = (credentialId: Uint8Array) =>
     }),
     Effect.filterOrFail(
       (result): result is Authenticator => !!result,
-      () => new NoAuthenticatorError(),
+      () =>
+        new NoAuthenticatorError({
+          message: "No authenticator was found",
+        }),
     ),
   );
 
@@ -43,7 +46,10 @@ export const getUserAuthenticator =
       }),
       Effect.filterOrFail(
         (result): result is Authenticator => !!result,
-        () => new NoAuthenticatorError(),
+        () =>
+          new NoAuthenticatorError({
+            message: "No authenticator was found for the user",
+          }),
       ),
     );
 
@@ -56,6 +62,13 @@ export const getUserAuthenticators = (userId: Branded.UserId) =>
         }),
       catch: (error) => new DBError({ message: getErrorMessage(error) }),
     }),
+    Effect.filterOrFail(
+      (result): result is Authenticator[] => !!result.length,
+      () =>
+        new NoAuthenticatorError({
+          message: "No authenticators were found for the user",
+        }),
+    ),
   );
 
 export const createNewAuthenticator = (authenticator: Authenticator) => {

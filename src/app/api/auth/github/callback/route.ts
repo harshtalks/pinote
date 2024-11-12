@@ -6,7 +6,7 @@ import {
   sessionDuration,
 } from "@/auth/*";
 import Database from "@/db/*";
-import { githubRepo, userRepo } from "@/repositories/*";
+import { githubRepo, userMetaRepo, userRepo } from "@/repositories/*";
 import { Branded } from "@/types/*";
 import { StringResponseType } from "@/types/hoc.types";
 import { getErrorMessage } from "@/utils/errors";
@@ -93,6 +93,11 @@ export const GET = async (request: Request) => {
         githubId: githubUser.login,
         email: githubUserEmails[0].email,
         username: githubUser.login,
+      });
+
+      // create a new user meta -> it holds our recovery code.
+      yield* userMetaRepo.createUserMeta({
+        userId: newUser.id,
       });
 
       const sessionToken = yield* auth.generateSessionToken;

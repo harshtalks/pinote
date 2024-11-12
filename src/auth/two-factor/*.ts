@@ -3,6 +3,7 @@
 
 export * from "./recovery";
 export * from "./challenge.ref";
+export * from "./reset-tf";
 
 // Comments
 // 1. Each session would have a tfVerified flag, which would be set to true if the user has verified the two factor authentication.

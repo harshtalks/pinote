@@ -2,7 +2,7 @@ import { sqliteTable } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
 import { prefixedId } from "../schema.helper";
 import { createdAtSchema, updatedAtSchema } from "../schema.common";
-import { users } from "../*";
+import { users } from "../users/*";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { userAgent } from "next/server";
 

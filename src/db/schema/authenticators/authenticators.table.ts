@@ -1,6 +1,6 @@
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
-import { users } from "../*";
+import { users } from "../users/*";
 import { createdAtSchema, updatedAtSchema } from "../schema.common";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
