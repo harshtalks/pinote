@@ -5,6 +5,7 @@ import SigninPageRoute from "./route.info";
 import { AuthInterceptor } from "@/auth/interceptor";
 import { headers } from "next/headers";
 import { GithubIcon } from "lucide-react";
+import { RandomVectors } from "@/components/features/sign-in/*";
 
 const SignInPage = async (routeProps: RouteProps) => {
   return (
@@ -20,7 +21,8 @@ const SignInPage = async (routeProps: RouteProps) => {
 
       return (
         <section>
-          <div className="flex mt-20 flex-col space-y-8 h-full items-center justify-center">
+          <div className="flex h-screen flex-col space-y-8 items-center justify-center">
+            <RandomVectors />
             <h1 className="text-6xl font-semibold font-cal">
               Get Started with Github
             </h1>
