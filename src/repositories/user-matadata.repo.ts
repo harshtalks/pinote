@@ -8,7 +8,7 @@ import {
   UserMetadataInsert,
   users,
 } from "@/db/schema/*";
-import { Branded } from "@/types/*";
+import { Branded, NonEmptyArray } from "@/types/*";
 import { bufferToUint8Array, uint8ArrayToBuffer } from "@/utils/casting";
 import { DBError, getErrorMessage, NoRowsReturnedError } from "@/utils/errors";
 import { eq } from "drizzle-orm";
@@ -33,14 +33,14 @@ export const createUserMeta = (
           .returning(),
       catch: (error) => new DBError({ message: getErrorMessage(error) }),
     }),
-    Effect.andThen((result) => result[0]),
     Effect.filterOrFail(
-      (result): result is UserMetadata => !!result,
+      (result): result is NonEmptyArray<UserMetadata> => result.length > 0,
       () =>
         new NoRowsReturnedError({
           message: "No User metadata was returned by the db",
         }),
     ),
+    Effect.andThen((res) => res[0]),
   );
 
 // This will get the user metadata by the user id
@@ -51,14 +51,14 @@ export const getUserMetaRecoveryCode = (userId: Branded.UserId) =>
         db.select().from(userMetadata).where(eq(userMetadata.userId, userId)),
       catch: (error) => new DBError({ message: getErrorMessage(error) }),
     }),
-    Effect.andThen((result) => result[0]),
     Effect.filterOrFail(
-      (result): result is UserMetadata => !!result,
+      (result): result is NonEmptyArray<UserMetadata> => result.length > 0,
       () =>
         new NoRowsReturnedError({
           message: "No User metadata was returned by the db",
         }),
     ),
+    Effect.andThen((result) => result[0]),
     Effect.map((result) => result.recoveryCode),
     Effect.map(bufferToUint8Array),
     Effect.andThen(decryptToString),

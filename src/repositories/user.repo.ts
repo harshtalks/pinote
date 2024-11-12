@@ -3,7 +3,8 @@ import { User, UserInsert, users } from "@/db/schema/*";
 import { Branded } from "@/types/*";
 import { DBError, getErrorMessage, NoRowsReturnedError } from "@/utils/errors";
 import { eq } from "drizzle-orm";
-import { Effect } from "effect";
+import { Console, Effect } from "effect";
+import { NonEmptyArray } from "@/types/*";
 
 export const getUserById = (userId: Branded.UserId) =>
   Database.pipe(
@@ -14,14 +15,14 @@ export const getUserById = (userId: Branded.UserId) =>
           message: getErrorMessage(error),
         }),
     }),
-    Effect.andThen((result) => result[0]),
     Effect.filterOrFail(
-      (result): result is User => !!result,
+      (result): result is NonEmptyArray<User> => result.length > 0,
       () =>
         new NoRowsReturnedError({
           message: "We could not find user associated with given user id",
         }),
     ),
+    Effect.andThen((users) => users[0]),
   );
 
 export const getUserByGithubId = (githubId: Branded.GithubId) =>
@@ -33,15 +34,15 @@ export const getUserByGithubId = (githubId: Branded.GithubId) =>
           message: getErrorMessage(error),
         }),
     }),
-    Effect.andThen((result) => result[0]),
     Effect.filterOrFail(
-      (result): result is User => !!result,
+      (result): result is NonEmptyArray<User> => result.length > 0,
       () =>
         new NoRowsReturnedError({
           message:
             "We could not find user associated with given github login id",
         }),
     ),
+    Effect.andThen((users) => users[0]),
   );
 
 export const createNewUser = (user: UserInsert) => {
@@ -53,14 +54,13 @@ export const createNewUser = (user: UserInsert) => {
           message: getErrorMessage(error),
         }),
     }),
-    Effect.andThen((users) => users[0]),
     Effect.filterOrFail(
-      (result): result is User => !!result,
+      (result): result is NonEmptyArray<User> => result.length > 0,
       () =>
         new NoRowsReturnedError({
-          message:
-            "We could not find user associated with given github login id",
+          message: "DB did not return any user",
         }),
     ),
+    Effect.andThen((users) => users[0]),
   );
 };

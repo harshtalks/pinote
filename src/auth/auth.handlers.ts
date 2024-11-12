@@ -34,7 +34,12 @@ export const createSession = (
       (sessionId) =>
         ({
           userId: userId,
-          expiresAt: Duration.toMillis(sessionDuration),
+          expiresAt: Duration.toMillis(
+            Duration.sum(
+              Duration.toMillis(sessionDuration),
+              Duration.millis(Date.now()),
+            ),
+          ),
           sessionId,
           userAgent: ua,
         }) as SessionInsert,

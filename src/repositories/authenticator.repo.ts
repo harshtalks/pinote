@@ -4,7 +4,7 @@ import {
   AuthenticatorInsert,
   authenticators,
 } from "@/db/schema/*";
-import { Branded } from "@/types/*";
+import { Branded, NonEmptyArray } from "@/types/*";
 import { uint8ArrayToBuffer } from "@/utils/casting";
 import {
   DBError,
@@ -81,14 +81,14 @@ export const createNewAuthenticator = (authenticator: AuthenticatorInsert) => {
       try: (db) => db.insert(authenticators).values(authenticator).returning(),
       catch: (error) => new DBError({ message: getErrorMessage(error) }),
     }),
-    Effect.andThen((result) => result[0]),
     Effect.filterOrFail(
-      (result): result is Authenticator => !!result,
+      (result): result is NonEmptyArray<Authenticator> => result.length > 0,
       () =>
         new NoRowsReturnedError({
           message: "No authenticator was created",
         }),
     ),
+    Effect.andThen((result) => result[0]),
   );
 };
 
@@ -108,13 +108,13 @@ export const deleteUserAuthenticator =
             .returning(),
         catch: (error) => new DBError({ message: getErrorMessage(error) }),
       }),
-      Effect.andThen((result) => result[0]),
       Effect.filterOrFail(
-        (result): result is Authenticator => !!result,
+        (result): result is NonEmptyArray<Authenticator> => result.length > 0,
         () =>
           new NoRowsReturnedError({
             message: "No authenticator was deleted",
           }),
       ),
+      Effect.andThen((result) => result[0]),
     );
   };

@@ -16,7 +16,7 @@ import { makeURL } from "@/utils/url";
 import { FetchHttpClient } from "@effect/platform";
 import { Effect, Option } from "effect";
 import { Redacted } from "effect";
-import { Console } from "effect";
+import { NoSuchElementException } from "effect/Cause";
 import { StatusCodes } from "http-status-codes";
 import { NextResponse, userAgent } from "next/server";
 
@@ -62,7 +62,9 @@ export const GET = async (request: Request) => {
       .getUserByGithubId(Branded.GithubId(githubUser.login))
       .pipe(
         Effect.map(Option.some),
-        Effect.catchTag("NoRowsReturnedError", () => Option.none()),
+        Effect.catchTag("NoRowsReturnedError", () =>
+          Effect.succeed(Option.none()),
+        ),
       );
 
     if (Option.isSome(user)) {
@@ -75,7 +77,9 @@ export const GET = async (request: Request) => {
         ua,
       );
 
-      yield* cookie.setCookie(AUTH_COOKIE_NAME)(session.id)(sessionDuration);
+      yield* cookie.setCookie(AUTH_COOKIE_NAME)(session.sessionId)(
+        sessionDuration,
+      );
 
       return NextResponse.json<StringResponseType>(
         {
@@ -155,7 +159,7 @@ export const GET = async (request: Request) => {
               {},
               {
                 searchParams: {
-                  message: err.message,
+                  message: `${err._tag} ${err.message}`,
                   code: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
                   goBackTo: makeURL(SigninPageRoute.navigate(), request.url),
                 },

@@ -8,7 +8,7 @@ import {
   sessions,
   User,
 } from "@/db/schema/*";
-import { Branded } from "@/types/*";
+import { Branded, NonEmptyArray } from "@/types/*";
 import {
   DBError,
   DeleteEntityError,
@@ -26,14 +26,14 @@ export const createSession = (session: SessionInsert) =>
       try: (db) => db.insert(sessions).values(session).returning(),
       catch: (error) => new DBError({ message: getErrorMessage(error) }),
     }),
-    Effect.andThen((result) => result[0]),
     Effect.filterOrFail(
-      (result): result is Session => !!result,
+      (result): result is NonEmptyArray<Session> => result.length > 0,
       () =>
         new NoRowsReturnedError({
           message: "no rows returned",
         }),
     ),
+    Effect.andThen((result) => result[0]),
   );
 
 // This will get the session by the session id
@@ -44,14 +44,14 @@ export const getSessionBySessionId = (sessionId: Branded.SessionId) =>
         db.select().from(sessions).where(eq(sessions.sessionId, sessionId)),
       catch: (error) => new DBError({ message: getErrorMessage(error) }),
     }),
-    Effect.andThen((result) => result[0]),
     Effect.filterOrFail(
-      (result): result is Session => !!result,
+      (result): result is NonEmptyArray<Session> => result.length > 0,
       () =>
         new NoRowsReturnedError({
           message: "could not find the session with the session id",
         }),
     ),
+    Effect.andThen((result) => result[0]),
   );
 
 export type SessionWithUser = Session & {
@@ -103,14 +103,14 @@ export const deleteSession = (sessionId: Branded.SessionId) =>
           message: "something went wrong while deleting the session",
         }),
     ),
-    Effect.andThen((res) => res[0]),
     Effect.filterOrFail(
-      (result): result is Session => !!result,
+      (result): result is NonEmptyArray<Session> => result.length > 0,
       () =>
         new NoRowsReturnedError({
           message: "Something went wrong while deleting the session",
         }),
     ),
+    Effect.andThen((res) => res[0]),
   );
 
 // This will update the session expiry
@@ -133,14 +133,14 @@ export const updateSessionExpiry = (
           .where(eq(sessions.sessionId, sessionId))
           .returning(),
     }),
-    Effect.map((res) => res[0]),
     Effect.filterOrFail(
-      (session): session is Session => !!session,
+      (result): result is NonEmptyArray<Session> => result.length > 0,
       () =>
         new NoRowsReturnedError({
           message: "Something went wrong while updating the session expiry",
         }),
     ),
+    Effect.map((res) => res[0]),
     Effect.catchAllDefect(
       (error) => new UncaughtError({ message: getErrorMessage(error) }),
     ),
@@ -160,15 +160,16 @@ export const setSessionTFStatus =
             .where(eq(sessions.sessionId, sessionId))
             .returning(),
       }),
-      Effect.map((res) => res[0]),
+
       Effect.filterOrFail(
-        (session): session is Session => !!session,
+        (result): result is NonEmptyArray<Session> => result.length > 0,
         () =>
           new NoRowsReturnedError({
             message:
               "Something went wrong while setting up the two factor status for the session",
           }),
       ),
+      Effect.map((res) => res[0]),
       Effect.catchAllDefect(
         (error) => new UncaughtError({ message: getErrorMessage(error) }),
       ),

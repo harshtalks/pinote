@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { Data } from "effect";
 
 export const getErrorMessage = (error: unknown) => {
-  return error instanceof Error ? error.message : "Unknown error";
+  return error instanceof Error ? error.message : "Something went wrong..";
 };
 
 export class DBError extends Data.TaggedError("DBError")<{

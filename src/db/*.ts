@@ -9,8 +9,8 @@ export const makeDb = Effect.sync(() =>
       url: env.DATABASE_URL,
       authToken: env.DATABASE_AUTH_TOKEN,
     },
-    casing: "snake_case",
     schema: schema,
+    logger: true,
   }),
 );
 
