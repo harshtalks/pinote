@@ -1,5 +1,9 @@
 import Database from "@/db/*";
-import { Authenticator, authenticators } from "@/db/schema/*";
+import {
+  Authenticator,
+  AuthenticatorInsert,
+  authenticators,
+} from "@/db/schema/*";
 import { Branded } from "@/types/*";
 import { uint8ArrayToBuffer } from "@/utils/casting";
 import {
@@ -71,7 +75,7 @@ export const getUserAuthenticators = (userId: Branded.UserId) =>
     ),
   );
 
-export const createNewAuthenticator = (authenticator: Authenticator) => {
+export const createNewAuthenticator = (authenticator: AuthenticatorInsert) => {
   return Database.pipe(
     Effect.tryMapPromise({
       try: (db) => db.insert(authenticators).values(authenticator).returning(),

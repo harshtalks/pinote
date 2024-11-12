@@ -1,6 +1,11 @@
 // sometimes we want to cast an input to a specific type
 
-import { getErrorMessage, UncaughtError } from "@/utils/errors";
+import {
+  getErrorMessage,
+  TrpcCustomError,
+  UncaughtError,
+} from "@/utils/errors";
+import { TRPCError } from "@trpc/server";
 import { Effect, Either, Schema } from "effect";
 
 // Cast an input to a specific type
@@ -26,4 +31,11 @@ export const asEither = <A, E, R>(self: Effect.Effect<A, E, R>) =>
         ),
       ),
     ),
+  );
+
+export const failwithTrpcErr = (trpcErr: TRPCError) =>
+  Effect.fail(
+    new TrpcCustomError({
+      error: trpcErr,
+    }),
   );

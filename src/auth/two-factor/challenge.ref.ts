@@ -42,3 +42,8 @@ export class TfChallenges extends Effect.Service<TfChallenges>()(
     );
   }
 }
+
+export const provideChallengeRef = <A, E, R>(
+  self: Effect.Effect<A, E, R | TfChallenges>,
+): Effect.Effect<A, E, Exclude<R, TfChallenges>> =>
+  Effect.provide(self, TfChallenges.Default);

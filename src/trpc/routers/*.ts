@@ -1,22 +1,17 @@
 // All the routers
 
-import { Effect } from "effect";
 import {
   authenticatedProcedure,
   createCallerFactory,
   createTRPCRouter,
 } from "../trpc";
-import { provideDB } from "@/db/*";
-import { asEither } from "../utils.trpc";
-import { trpcRunTime } from "../layer/*";
+import { tfRouter } from "./tf/*";
 
 export const appRouter = createTRPCRouter({
-  health: authenticatedProcedure.query(({ ctx }) => {
-    return Effect.gen(function* () {
-      const session = yield* ctx.session;
-      return session.session.id;
-    }).pipe(provideDB, asEither, trpcRunTime.runPromise);
+  health: authenticatedProcedure.query(() => {
+    return "Hello World!!";
   }),
+  twoFactor: tfRouter,
 });
 
 /**

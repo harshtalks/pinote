@@ -1,7 +1,11 @@
+import ErrorPageRoute from "@/app/(pages)/error/route.info";
+import SigninPageRoute from "@/app/(pages)/sign-in/route.info";
 import { cookie, GithubOAuth } from "@/auth/*";
 import { getErrorMessage } from "@/utils/errors";
+import { makeURL } from "@/utils/url";
 import { generateState } from "arctic";
 import { Duration, Effect } from "effect";
+import { StatusCodes } from "http-status-codes";
 import { NextResponse } from "next/server";
 
 export const GET = async (request: Request) => {
@@ -27,25 +31,39 @@ export const GET = async (request: Request) => {
   }).pipe(
     Effect.catchAllDefect((err) =>
       Effect.succeed(
-        Response.json(
-          {
-            error: getErrorMessage(err),
-          },
-          {
-            status: 500,
-          },
+        NextResponse.redirect(
+          makeURL(
+            ErrorPageRoute.navigate(
+              {},
+              {
+                searchParams: {
+                  message: getErrorMessage(err),
+                  code: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
+                  goBackTo: makeURL(SigninPageRoute.navigate(), request.url),
+                },
+              },
+            ),
+            request.url,
+          ),
         ),
       ),
     ),
     Effect.catchAll((err) =>
       Effect.succeed(
-        Response.json(
-          {
-            error: err.message,
-          },
-          {
-            status: 500,
-          },
+        NextResponse.redirect(
+          makeURL(
+            ErrorPageRoute.navigate(
+              {},
+              {
+                searchParams: {
+                  message: err.message,
+                  code: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
+                  goBackTo: makeURL(SigninPageRoute.navigate(), request.url),
+                },
+              },
+            ),
+            request.url,
+          ),
         ),
       ),
     ),

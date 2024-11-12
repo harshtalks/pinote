@@ -145,3 +145,31 @@ export const updateSessionExpiry = (
       (error) => new UncaughtError({ message: getErrorMessage(error) }),
     ),
   );
+
+export const setSessionTFStatus =
+  (sessionId: Branded.SessionId) => (value: boolean) =>
+    Database.pipe(
+      Effect.tryMapPromise({
+        catch: (error) => new DBError({ message: getErrorMessage(error) }),
+        try: (db) =>
+          db
+            .update(sessions)
+            .set({
+              tfVerified: value,
+            })
+            .where(eq(sessions.sessionId, sessionId))
+            .returning(),
+      }),
+      Effect.map((res) => res[0]),
+      Effect.filterOrFail(
+        (session): session is Session => !!session,
+        () =>
+          new NoRowsReturnedError({
+            message:
+              "Something went wrong while setting up the two factor status for the session",
+          }),
+      ),
+      Effect.catchAllDefect(
+        (error) => new UncaughtError({ message: getErrorMessage(error) }),
+      ),
+    );

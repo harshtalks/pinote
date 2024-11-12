@@ -1,3 +1,5 @@
+import ErrorPageRoute from "@/app/(pages)/error/route.info";
+import SigninPageRoute from "@/app/(pages)/sign-in/route.info";
 import {
   auth,
   AUTH_COOKIE_NAME,
@@ -10,9 +12,11 @@ import { githubRepo, userMetaRepo, userRepo } from "@/repositories/*";
 import { Branded } from "@/types/*";
 import { StringResponseType } from "@/types/hoc.types";
 import { getErrorMessage } from "@/utils/errors";
+import { makeURL } from "@/utils/url";
 import { FetchHttpClient } from "@effect/platform";
 import { Effect, Option } from "effect";
 import { Redacted } from "effect";
+import { Console } from "effect";
 import { StatusCodes } from "http-status-codes";
 import { NextResponse, userAgent } from "next/server";
 
@@ -126,27 +130,39 @@ export const GET = async (request: Request) => {
   }).pipe(
     Effect.catchAllDefect((err) =>
       Effect.succeed(
-        NextResponse.json<StringResponseType>(
-          {
-            error: getErrorMessage(err),
-            success: false,
-          },
-          {
-            status: StatusCodes.INTERNAL_SERVER_ERROR,
-          },
+        NextResponse.redirect(
+          makeURL(
+            ErrorPageRoute.navigate(
+              {},
+              {
+                searchParams: {
+                  message: getErrorMessage(err),
+                  code: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
+                  goBackTo: makeURL(SigninPageRoute.navigate(), request.url),
+                },
+              },
+            ),
+            request.url,
+          ),
         ),
       ),
     ),
     Effect.catchAll((err) =>
       Effect.succeed(
-        NextResponse.json<StringResponseType>(
-          {
-            error: err.message,
-            success: false,
-          },
-          {
-            status: StatusCodes.INTERNAL_SERVER_ERROR,
-          },
+        NextResponse.redirect(
+          makeURL(
+            ErrorPageRoute.navigate(
+              {},
+              {
+                searchParams: {
+                  message: err.message,
+                  code: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
+                  goBackTo: makeURL(SigninPageRoute.navigate(), request.url),
+                },
+              },
+            ),
+            request.url,
+          ),
         ),
       ),
     ),
