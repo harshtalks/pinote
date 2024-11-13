@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeProvider from "@/providers/theme.provider";
 import { Inter } from "next/font/google";
 import { TRPCReactProvider } from "@/trpc/client";
+import { Toaster } from "@/components/ui/sonner";
 
 const calSans = localFont({
   src: "./fonts/CalSans SemiBold.woff",
@@ -37,6 +38,7 @@ export default function RootLayout({
         >
           <TRPCReactProvider>
             <main className="h-full">{children}</main>
+            <Toaster />
           </TRPCReactProvider>
         </ThemeProvider>
       </body>

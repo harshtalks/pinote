@@ -33,9 +33,4 @@ export const asEither = <A, E, R>(self: Effect.Effect<A, E, R>) =>
     ),
   );
 
-export const failwithTrpcErr = (trpcErr: TRPCError) =>
-  Effect.fail(
-    new TrpcCustomError({
-      error: trpcErr,
-    }),
-  );
+export const failwithTrpcErr = (trpcErr: TRPCError) => Effect.fail(trpcErr);

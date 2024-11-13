@@ -64,3 +64,30 @@ export const createNewUser = (user: UserInsert) => {
     Effect.andThen((users) => users[0]),
   );
 };
+
+export const updateTfSkipStatus = (userId: Branded.UserId) => (skip: boolean) =>
+  Database.pipe(
+    Effect.tryMapPromise({
+      try: (db) =>
+        db
+          .update(users)
+          .set({
+            skippedTfStep: skip,
+          })
+          .where(eq(users.id, userId))
+          .returning(),
+      catch: (error) =>
+        new DBError({
+          message: getErrorMessage(error),
+        }),
+    }),
+    Effect.filterOrFail(
+      (result): result is NonEmptyArray<User> => result.length > 0,
+      () =>
+        new NoRowsReturnedError({
+          message:
+            "We could not find user associated with given github login id",
+        }),
+    ),
+    Effect.andThen((users) => users[0]),
+  );

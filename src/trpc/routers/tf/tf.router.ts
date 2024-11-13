@@ -2,7 +2,6 @@
 
 import { authenticatedProcedure, createTRPCRouter } from "@/trpc/trpc";
 import { asEither, failwithTrpcErr, inputAsSchema } from "@/trpc/utils.trpc";
-import { TrpcCustomError } from "@/utils/errors";
 import { decodeBase64 } from "@oslojs/encoding";
 import { TRPCError } from "@trpc/server";
 import { Effect, Schema } from "effect";
@@ -36,7 +35,12 @@ import {
 } from "@/auth/two-factor/challenge.ref";
 import { AuthenticatorInsert } from "@/db/schema/*";
 import { bufferToUint8Array, uint8ArrayToBuffer } from "@/utils/casting";
-import { authenticatorRepo, sessionRepo, userMetaRepo } from "@/repositories/*";
+import {
+  authenticatorRepo,
+  sessionRepo,
+  userMetaRepo,
+  userRepo,
+} from "@/repositories/*";
 import { Branded } from "@/types/*";
 import { provideDB } from "@/db/*";
 import { trpcRunTime } from "@/trpc/layer/*";
@@ -60,13 +64,11 @@ export const tfRouter = createTRPCRouter({
         const { session, user } = yield* ctx.session;
 
         if (!user.twoFactorAuth) {
-          return yield* Effect.fail(
-            new TrpcCustomError({
-              error: new TRPCError({
-                code: "FORBIDDEN",
-                message:
-                  "You need to have two factor auth enabled in order to use this.",
-              }),
+          return yield* failwithTrpcErr(
+            new TRPCError({
+              code: "FORBIDDEN",
+              message:
+                "You need to have two factor auth enabled in order to use this.",
             }),
           );
         }
@@ -425,5 +427,23 @@ export const tfRouter = createTRPCRouter({
           message: "Successfully verified two factor auth",
         };
       }),
+    ),
+  // Disable the user's two factor auth
+  tfSkip: authenticatedProcedure
+    .input(
+      inputAsSchema(
+        Schema.Struct({
+          skip: Schema.Boolean,
+        }),
+      ),
+    )
+    .mutation(({ ctx, input }) =>
+      ctx.session.pipe(
+        Effect.andThen(({ user }) =>
+          userRepo.updateTfSkipStatus(Branded.UserId(user.id))(input.skip),
+        ),
+        provideDB,
+        trpcRunTime.runPromise,
+      ),
     ),
 });

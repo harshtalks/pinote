@@ -1,17 +1,12 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import { Effect, Either, Redacted } from "effect";
+import { Effect, Either } from "effect";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
-import Database, { provideDB } from "@/db/*";
-import { AUTH_COOKIE_NAME } from "@/auth/db.const";
-import {
-  generateSessionToken,
-  readSessionFromCookieAndValidate,
-  validateSessionToken,
-} from "@/auth/auth.handlers";
+import Database from "@/db/*";
+import { readSessionFromCookieAndValidate } from "@/auth/auth.handlers";
 import { fromError } from "zod-validation-error";
 import { ZodError } from "zod";
-import { TrpcCustomError } from "@/utils/errors";
+import { failwithTrpcErr } from "./utils.trpc";
 
 /**
  * 1. CONTEXT
@@ -93,12 +88,10 @@ export const authenticatedProcedure = t.procedure.use(({ ctx, next }) => {
   const sessionUpdated = ctx.session.pipe(
     Effect.andThen((session) => {
       if (!session) {
-        return Effect.fail(
-          new TrpcCustomError({
-            error: new TRPCError({
-              code: "UNAUTHORIZED",
-              message: "You must be logged in to access this resource",
-            }),
+        return failwithTrpcErr(
+          new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "You must be logged in to access this resource",
           }),
         );
       } else return Effect.succeed(session);

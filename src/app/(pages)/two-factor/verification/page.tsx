@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Fingerprint } from "lucide-react";
 import TwoFactorVerificationPageRoute from "./route.info";
 import { headers } from "next/headers";
+import { SkipStatus } from "@/components/features/tf/skip-status";
 
 const TwoFactorPage = async () => {
   await new AuthInterceptor()
@@ -40,11 +41,14 @@ const TwoFactorPage = async () => {
           <hr />
           <div className="flex items-center gap-1">
             <p className="text-muted-foreground text-xs">
-              Do not want to use two factor?
+              Do not want to use two factor? <SkipStatus />
+              <br />
+              <span className="leading-relaxed">
+                You can always enable it later from settings. Implementing two
+                factor authentication is an expensive choice for us and we may
+                monetize it in the future.
+              </span>
             </p>
-            <Button size="sm" className="text-xs p-0" variant="link">
-              Skip for now
-            </Button>
           </div>
         </div>
       </div>
