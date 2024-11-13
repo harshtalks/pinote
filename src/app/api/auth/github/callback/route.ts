@@ -13,7 +13,7 @@ import { githubRepo, userMetaRepo, userRepo } from "@/repositories/*";
 import { Branded } from "@/types/*";
 import { StringResponseType } from "@/types/hoc.types";
 import { getErrorMessage } from "@/utils/errors";
-import { makeURL } from "@/utils/url";
+import { makeURL, redirectUserPostSignIn } from "@/utils/url";
 import { Effect, Option } from "effect";
 import { Redacted } from "effect";
 import { StatusCodes } from "http-status-codes";
@@ -25,6 +25,7 @@ export const GET = async (request: Request) => {
 
     // const redirectUrl = yield* cookie.getCookie("github_oauth_redirect_url");
     const storedState = yield* cookie.getCookie("github_oauth_state");
+    const redirectUrl = yield* cookie.getCookie("github_oauth_redirect_url");
 
     const code = url.searchParams.get("code");
     const state = url.searchParams.get("state");
@@ -41,7 +42,7 @@ export const GET = async (request: Request) => {
           status: StatusCodes.MOVED_TEMPORARILY,
           statusText: "Malformed or invalid state from github",
           headers: {
-            Location: "/sign-in",
+            Location: SigninPageRoute.navigate(),
           },
         },
       );
@@ -70,26 +71,19 @@ export const GET = async (request: Request) => {
       // get the session token
       const sessionToken = yield* auth.generateSessionToken;
       // create a brand new session
-      const session = yield* auth.createSession(
+      yield* auth.createSession(
         Branded.UserId(user.value.id),
         Redacted.make(sessionToken),
         ua,
       );
 
-      yield* cookie.setCookie(AUTH_COOKIE_NAME)(session.sessionId)(
-        sessionDuration,
-      );
+      yield* cookie.setCookie(AUTH_COOKIE_NAME)(sessionToken)(sessionDuration);
 
-      return NextResponse.json<StringResponseType>(
-        {
-          result: "Successfully signed in",
-          success: true,
-        },
+      return NextResponse.redirect(
+        redirectUserPostSignIn(request.url, redirectUrl),
         {
           status: StatusCodes.TEMPORARY_REDIRECT,
-          headers: {
-            Location: "/",
-          },
+          statusText: "Successfully signed in",
         },
       );
     } else {
@@ -109,24 +103,20 @@ export const GET = async (request: Request) => {
 
       const sessionToken = yield* auth.generateSessionToken;
 
-      const session = yield* auth.createSession(
+      yield* auth.createSession(
         Branded.UserId(newUser.id),
         Redacted.make(sessionToken),
         ua,
       );
 
-      yield* cookie.setCookie(AUTH_COOKIE_NAME)(session.id)(sessionDuration);
+      // set the session token
+      yield* cookie.setCookie(AUTH_COOKIE_NAME)(sessionToken)(sessionDuration);
 
-      return NextResponse.json<StringResponseType>(
-        {
-          result: "Successfully signed in",
-          success: true,
-        },
+      return NextResponse.redirect(
+        redirectUserPostSignIn(request.url, redirectUrl),
         {
           status: StatusCodes.TEMPORARY_REDIRECT,
-          headers: {
-            Location: "/",
-          },
+          statusText: "Successfully signed in",
         },
       );
     }

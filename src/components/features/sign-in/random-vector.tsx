@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-const vectors = [
+const defaultVectors = [
   "https://cdn.prod.website-files.com/5e51c674258ffe10d286d30a/5e53573df5fa1a2163f8ed70_peep-48.svg",
   "https://cdn.prod.website-files.com/5e51c674258ffe10d286d30a/5e535b9746008059478ec0d0_peep-85.svg",
   "https://cdn.prod.website-files.com/5e51c674258ffe10d286d30a/5e535a489588e0fbe97f7fd8_peep-74.svg",
@@ -55,15 +55,63 @@ const vectors = [
   "https://cdn.prod.website-files.com/5e51c674258ffe10d286d30a/5e5359b47371bb97b7a01b27_peep-69.svg",
 ];
 
-export const RandomVectors = () => {
+export const postHumansVectors = [
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64d190d6faa5e45333b85ae6_pacheco.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64d190c182efd7fa3c5ac033_pondering.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4c2274b417b090395329_plants.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4d0d89236fc80a3395b4_runner.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4b0849333dd65b9525a6_coffee.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64d18f3612fc6b2613d1c073_kiddo.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4cf165d907b29682f236_reflecting.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4b9065d907b296812105_groceries.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64d9c4a98635fca2c709df73_fling.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4bff9a10126e545d80ab_meela-pantalones.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4bb186f25148606d5790_jumping-air.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4b4c49ec3a4d94fff220_experiments.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4b1aa5bcc50de231dfb4_consumer.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64d18f22bd4dfae30b7ea399_astro.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4d3249ec3a4d94020db3_whoa.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4bbcbc2ded17ba200a97_late-for-class.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64d9c64fb20aa28a2850f036_chaotic-good.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4ae7f0da0e3228c9e64c_chilly.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4c1f93603c845f7c8154_polka-pup.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4bf3d05d69cba1e51fb2_new-beginnings.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64d9c57f3431692037f48232_feliz.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4ce4f47cd9cfb4c564a9_puppy.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4aba2a4c88ee00b532c5_bueno.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4b9bf0da0e3228caa6d0_growth.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64d18f12c3c7254f542da85a_rogue.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4b3eaa3b6a1d9a42e55c_entertainment.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4be4f47cd9cfb4c443cb_mechanical-love.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4b8241e30d1ff98179ad_gamestation.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4b323f2f3437eef3035d_ecto-plasma.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4d1949333dd65b97493f_waiting.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4d3cb1d3c8db3605f80b_wont-stop.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4ad349ec3a4d94ff7554_chillin.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4d2566d2149b3c426c48_walking-contradiction.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4b2686f25148606c9181_cube-leg.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4d0257f3906c2314e093_roboto.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4bd987b3cd2ec6bf44df_mask.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64cd4bc8ac170c083bba7e85_looking-ahead.png",
+  "https://cdn.prod.website-files.com/64c73d04a946980a4476537e/64d18f01ee89ff2192ed113d_pilot.png",
+];
+
+export const RandomVectors = ({
+  vectors,
+  className,
+}: {
+  vectors?: string[];
+  className?: string;
+}) => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const selectedVectors = vectors || defaultVectors;
 
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveIndex((prevIndex) => {
         let newIndex;
         do {
-          newIndex = Math.floor(Math.random() * vectors.length);
+          newIndex = Math.floor(Math.random() * selectedVectors.length);
         } while (newIndex === prevIndex);
         return newIndex;
       });
@@ -76,12 +124,13 @@ export const RandomVectors = () => {
 
   return (
     <div className="text-center">
-      {vectors[activeIndex] && (
+      {selectedVectors[activeIndex] && (
         <Image
-          src={vectors[activeIndex]}
+          src={selectedVectors[activeIndex]}
           alt="Random vector"
           height={200}
           width={200}
+          className={className}
         />
       )}
     </div>

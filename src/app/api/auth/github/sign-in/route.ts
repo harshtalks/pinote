@@ -21,9 +21,9 @@ export const GET = async (request: Request) => {
     yield* cookie.setCookie("github_oauth_state")(state)(Duration.minutes(1));
 
     if (redirectUrl) {
-      yield* cookie.setCookie("github_oauth_redirect_url")(redirectUrl)(
-        Duration.minutes(1),
-      );
+      yield* cookie.setCookie("github_oauth_redirect_url")(
+        new URL(redirectUrl, new URL(request.url).origin).toString(),
+      )(Duration.minutes(1));
     }
 
     // Redirect to the github oauth url

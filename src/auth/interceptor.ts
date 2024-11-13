@@ -6,7 +6,7 @@ import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/he
 import { AUTH_COOKIE_NAME, cookie } from "./*";
 import { redirect } from "next/navigation";
 import { validateSessionToken } from "./auth.handlers";
-import Database from "@/db/*";
+import { provideDB } from "@/db/*";
 import TwoFactorPageRoute from "@/app/(pages)/two-factor/route.info";
 import TwoFactorVerificationPageRoute from "@/app/(pages)/two-factor/verification/route.info";
 import { SessionWithUser } from "@/repositories/session.repo";
@@ -116,6 +116,30 @@ export class AuthInterceptor {
     }
   }
 
+  #successRedirect({ isFullUrl, url }: { isFullUrl: boolean; url: string }) {
+    if (!this.#path) {
+      throw new Error("Path must be set before executing the interceptor.");
+    }
+
+    return Match.value(isFullUrl).pipe(
+      Match.when(true, () => {
+        const path = new URL(url).pathname;
+        if (this.#path === path) {
+          return;
+        } else {
+          redirect(url);
+        }
+      }),
+      Match.orElse(() => {
+        if (this.#path === url) {
+          return;
+        } else {
+          redirect(url);
+        }
+      }),
+    );
+  }
+
   // Executing the interceptor
   async execute() {
     if (!this.#path || !this.#base || !this.#headers) {
@@ -136,27 +160,52 @@ export class AuthInterceptor {
 
     const sessionWithUser = await validateSessionToken(
       Redacted.make(token),
-    ).pipe(Effect.provide(Database.Default), Effect.runPromise);
+    ).pipe(provideDB, Effect.runPromise);
 
     // The user is authenticated here. We will see the logic for two-factor from here.
     return Either.getRight(sessionWithUser).pipe(
+      // Condition Matching
       Option.match({
         onSome: ({ user, session }) =>
-          Match.value(user.twoFactorAuth).pipe(
+          // Check if user has skipped the two-factor step
+          Match.value(user.skippedTfStep).pipe(
+            // When true -> send to the success redirect
             Match.when(true, () =>
-              Match.value(session.tfVerified).pipe(
+              this.#successRedirect({
+                isFullUrl: this.#redirectUrl !== null,
+                url: this.#redirectUrl ?? this.#nextRoute,
+              }),
+            ),
+            // When false -> check if the user has two-factor auth enabled
+            Match.orElse(() =>
+              Match.value(user.twoFactorAuth).pipe(
+                // When true -> check if the user has verified the two-factor auth
                 Match.when(true, () =>
-                  redirect(this.#redirectUrl ?? this.#nextRoute),
+                  Match.value(session.tfVerified).pipe(
+                    // When true -> send to the success redirect
+                    Match.when(true, () =>
+                      this.#successRedirect({
+                        isFullUrl: this.#redirectUrl !== null,
+                        url: this.#redirectUrl ?? this.#nextRoute,
+                      }),
+                    ),
+                    Match.orElse(() =>
+                      Match.value(user.authenticators.length > 0).pipe(
+                        // When true -> send to the two-factor page
+                        Match.when(true, () => this.#redirectOrDoNothing("tf")),
+                        // When false -> send to the two-factor registration page
+                        Match.orElse(() => this.#redirectOrDoNothing("tf-reg")),
+                      ),
+                    ),
+                  ),
                 ),
                 Match.orElse(() =>
-                  Match.value(user.authenticators.length > 0).pipe(
-                    Match.when(true, () => this.#redirectOrDoNothing("tf")),
-                    Match.orElse(() => this.#redirectOrDoNothing("tf-reg")),
+                  this.#redirectOrDoNothing(
+                    user.authenticators.length ? "tf" : "tf-reg",
                   ),
                 ),
               ),
             ),
-            Match.orElse(() => redirect(this.#redirectUrl ?? this.#nextRoute)),
           ),
         onNone: () => this.#redirectOrDoNothing("sign-in"),
       }),

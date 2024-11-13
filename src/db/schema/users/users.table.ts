@@ -19,6 +19,12 @@ export const users = sqliteTable("users", {
     })
     .notNull()
     .default(false),
+  skippedTfStep: t
+    .integer({
+      mode: "boolean",
+    })
+    .notNull()
+    .default(false),
 });
 
 export type User = InferSelectModel<typeof users>;

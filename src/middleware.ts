@@ -26,7 +26,11 @@ export const config = {
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
   const requestHeaders = request.headers;
+  // remove already existing redirectUrl query parameter
+  request.nextUrl.searchParams.delete("redirectUrl");
+
   requestHeaders.set("x-pinote-url", request.nextUrl.toString());
+
   const response = NextResponse.next({ headers: requestHeaders });
 
   try {

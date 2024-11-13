@@ -6,7 +6,7 @@ const GithubSigninApiRoute = createRoute({
   paramsSchema: EmptyRouteParams,
   fn: () => "/api/auth/github/sign-in",
   searchParamsSchema: object({
-    redirectUrl: string().optional(),
+    redirectUrl: string().url().optional(),
   }),
 });
 
