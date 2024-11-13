@@ -11,6 +11,7 @@ import TwoFactorPageRoute from "@/app/(pages)/two-factor/route.info";
 import TwoFactorVerificationPageRoute from "@/app/(pages)/two-factor/verification/route.info";
 import { SessionWithUser } from "@/repositories/session.repo";
 import WorkspacesPageRoute from "@/app/(pages)/(workspaces)/workspaces/route.info";
+import { asEither } from "@/trpc/utils.trpc";
 
 export class AuthInterceptor {
   // Path -> take the path of the current page. route directory
@@ -121,21 +122,31 @@ export class AuthInterceptor {
       throw new Error("Path must be set before executing the interceptor.");
     }
 
+    const moveFromPages = [
+      SigninPageRoute.navigate(),
+      TwoFactorPageRoute.navigate(),
+      TwoFactorVerificationPageRoute.navigate(),
+    ];
+
     return Match.value(isFullUrl).pipe(
       Match.when(true, () => {
         const path = new URL(url).pathname;
+        if (moveFromPages.includes(path)) {
+          return redirect(this.#nextRoute);
+        }
         if (this.#path === path) {
           return;
-        } else {
-          redirect(url);
         }
+        redirect(url);
       }),
       Match.orElse(() => {
+        if (moveFromPages.includes(url)) {
+          return redirect(this.#nextRoute);
+        }
         if (this.#path === url) {
           return;
-        } else {
-          redirect(url);
         }
+        redirect(url);
       }),
     );
   }
@@ -158,57 +169,112 @@ export class AuthInterceptor {
       return this.#redirectOrDoNothing("sign-in");
     }
 
-    const sessionWithUser = await validateSessionToken(
-      Redacted.make(token),
-    ).pipe(provideDB, Effect.runPromise);
+    const sessionWithUser = Either.getOrNull(
+      await validateSessionToken(Redacted.make(token)).pipe(
+        provideDB,
+        Effect.runPromise,
+      ),
+    );
 
     // The user is authenticated here. We will see the logic for two-factor from here.
-    return Either.getRight(sessionWithUser).pipe(
-      // Condition Matching
-      Option.match({
-        onSome: ({ user, session }) =>
-          // Check if user has skipped the two-factor step
-          Match.value(user.skippedTfStep).pipe(
-            // When true -> send to the success redirect
-            Match.when(true, () =>
-              this.#successRedirect({
-                isFullUrl: this.#redirectUrl !== null,
-                url: this.#redirectUrl ?? this.#nextRoute,
-              }),
-            ),
-            // When false -> check if the user has two-factor auth enabled
-            Match.orElse(() =>
-              Match.value(user.twoFactorAuth).pipe(
-                // When true -> check if the user has verified the two-factor auth
-                Match.when(true, () =>
-                  Match.value(session.tfVerified).pipe(
-                    // When true -> send to the success redirect
-                    Match.when(true, () =>
-                      this.#successRedirect({
-                        isFullUrl: this.#redirectUrl !== null,
-                        url: this.#redirectUrl ?? this.#nextRoute,
-                      }),
-                    ),
-                    Match.orElse(() =>
-                      Match.value(user.authenticators.length > 0).pipe(
-                        // When true -> send to the two-factor page
-                        Match.when(true, () => this.#redirectOrDoNothing("tf")),
-                        // When false -> send to the two-factor registration page
-                        Match.orElse(() => this.#redirectOrDoNothing("tf-reg")),
-                      ),
-                    ),
-                  ),
-                ),
-                Match.orElse(() =>
-                  this.#redirectOrDoNothing(
-                    user.authenticators.length ? "tf" : "tf-reg",
-                  ),
-                ),
-              ),
-            ),
-          ),
-        onNone: () => this.#redirectOrDoNothing("sign-in"),
-      }),
-    );
+    // return Either.getRight(sessionWithUser).pipe(
+    //   // Condition Matching
+    //   Option.match({
+    //     onSome: ({ user, session }) =>
+    //       // Check if user has skipped the two-factor step
+    //       Match.value(user.skippedTfStep).pipe(
+    //         // When true -> send to the success redirect
+    //         Match.when(true, () =>
+    //           this.#successRedirect({
+    //             isFullUrl: this.#redirectUrl !== null,
+    //             url: this.#redirectUrl ?? this.#nextRoute,
+    //           }),
+    //         ),
+    //         // When false -> check if the user has two-factor auth enabled
+    //         Match.orElse(() =>
+    //           Match.value(user.twoFactorAuth).pipe(
+    //             // When true -> check if the user has verified the two-factor auth
+    //             Match.when(true, () =>
+    //               Match.value(session.tfVerified).pipe(
+    //                 // When true -> send to the success redirect
+    //                 Match.when(true, () =>
+    //                   this.#successRedirect({
+    //                     isFullUrl: this.#redirectUrl !== null,
+    //                     url: this.#redirectUrl ?? this.#nextRoute,
+    //                   }),
+    //                 ),
+    //                 Match.orElse(() =>
+    //                   Match.value(user.authenticators.length > 0).pipe(
+    //                     // When true -> send to the two-factor page
+    //                     Match.when(true, () => this.#redirectOrDoNothing("tf")),
+    //                     // When false -> send to the two-factor registration page
+    //                     Match.orElse(() => this.#redirectOrDoNothing("tf-reg")),
+    //                   ),
+    //                 ),
+    //               ),
+    //             ),
+    //             Match.orElse(() =>
+    //               this.#redirectOrDoNothing(
+    //                 user.authenticators.length ? "tf" : "tf-reg",
+    //               ),
+    //             ),
+    //           ),
+    //         ),
+    //       ),
+    //     onNone: () => this.#redirectOrDoNothing("sign-in"),
+    //   }),
+    // );
+
+    if (!sessionWithUser) {
+      return this.#redirectOrDoNothing("sign-in");
+    }
+
+    const { user, session } = sessionWithUser;
+
+    if (this.#path === SigninPageRoute.navigate()) {
+      if (user.skippedTfStep || (user.twoFactorAuth && session.tfVerified)) {
+        return this.#successRedirect({
+          isFullUrl: this.#redirectUrl !== null,
+          url: this.#redirectUrl ?? this.#nextRoute,
+        });
+      }
+    }
+
+    if (
+      [
+        TwoFactorPageRoute.navigate(),
+        TwoFactorVerificationPageRoute.navigate(),
+      ].includes(this.#path)
+    ) {
+      if (user.skippedTfStep || (user.twoFactorAuth && session.tfVerified)) {
+        return this.#successRedirect({
+          isFullUrl: this.#redirectUrl !== null,
+          url: this.#redirectUrl ?? this.#nextRoute,
+        });
+      }
+    }
+
+    if (user.skippedTfStep) {
+      return this.#successRedirect({
+        isFullUrl: this.#redirectUrl !== null,
+        url: this.#redirectUrl ?? this.#nextRoute,
+      });
+    }
+
+    if (user.twoFactorAuth) {
+      // check if the user has verified the two-factor auth
+      if (session.tfVerified) {
+        return this.#successRedirect({
+          isFullUrl: this.#redirectUrl !== null,
+          url: this.#redirectUrl ?? this.#nextRoute,
+        });
+      } else {
+        if (user.authenticators.length > 0) {
+          return this.#redirectOrDoNothing("tf");
+        } else {
+          return this.#redirectOrDoNothing("tf-reg");
+        }
+      }
+    }
   }
 }
