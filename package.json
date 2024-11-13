@@ -65,6 +65,7 @@
     "postcss": "^8",
     "shadcn": "^2.1.6",
     "tailwindcss": "^3.4.1",
+    "tempeh-cli": "^0.2.0",
     "tsx": "^4.19.2",
     "typescript": "^5"
   }
