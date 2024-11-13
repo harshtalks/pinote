@@ -17,3 +17,8 @@ export const makeGithubService = Effect.void.pipe(
 export class GithubOAuth extends Effect.Service<GithubOAuth>()("Oauth/Github", {
   effect: makeGithubService,
 }) {}
+
+export const provideGithubOAuth = <A, E, R>(
+  self: Effect.Effect<A, E, R | GithubOAuth>,
+): Effect.Effect<A, E, Exclude<R, GithubOAuth>> =>
+  Effect.provide(self, GithubOAuth.Default);

@@ -1,6 +1,6 @@
 import ErrorPageRoute from "@/app/(pages)/error/route.info";
 import SigninPageRoute from "@/app/(pages)/sign-in/route.info";
-import { cookie, GithubOAuth } from "@/auth/*";
+import { cookie, GithubOAuth, provideGithubOAuth } from "@/auth/*";
 import { getErrorMessage } from "@/utils/errors";
 import { makeURL } from "@/utils/url";
 import { generateState } from "arctic";
@@ -67,7 +67,7 @@ export const GET = async (request: Request) => {
         ),
       ),
     ),
-    Effect.provide(GithubOAuth.Default),
+    provideGithubOAuth,
     Effect.runPromise,
   );
 };

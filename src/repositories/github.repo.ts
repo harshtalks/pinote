@@ -1,6 +1,7 @@
 import { Effect, Redacted, Schema } from "effect";
 import createRoute, { EmptyRouteParams } from "../../route.config";
 import {
+  FetchHttpClient,
   HttpClient,
   HttpClientRequest,
   HttpClientResponse,
@@ -49,3 +50,8 @@ export const getCurrentUserEmails = (token: Redacted.Redacted<string>) =>
       HttpClientResponse.schemaBodyJson(Schema.NonEmptyArray(GithubEmail)),
     ),
   );
+
+export const provideFetchLayer = <A, E, R>(
+  self: Effect.Effect<A, E, R | HttpClient.HttpClient>,
+): Effect.Effect<A, E, Exclude<R, HttpClient.HttpClient>> =>
+  Effect.provide(self, FetchHttpClient.layer);

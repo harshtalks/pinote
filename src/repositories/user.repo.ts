@@ -3,7 +3,7 @@ import { User, UserInsert, users } from "@/db/schema/*";
 import { Branded } from "@/types/*";
 import { DBError, getErrorMessage, NoRowsReturnedError } from "@/utils/errors";
 import { eq } from "drizzle-orm";
-import { Console, Effect } from "effect";
+import { Effect } from "effect";
 import { NonEmptyArray } from "@/types/*";
 
 export const getUserById = (userId: Branded.UserId) =>

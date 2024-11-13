@@ -5,18 +5,17 @@ import {
   AUTH_COOKIE_NAME,
   cookie,
   GithubOAuth,
+  provideGithubOAuth,
   sessionDuration,
 } from "@/auth/*";
-import Database from "@/db/*";
+import { provideDB } from "@/db/*";
 import { githubRepo, userMetaRepo, userRepo } from "@/repositories/*";
 import { Branded } from "@/types/*";
 import { StringResponseType } from "@/types/hoc.types";
 import { getErrorMessage } from "@/utils/errors";
 import { makeURL } from "@/utils/url";
-import { FetchHttpClient } from "@effect/platform";
 import { Effect, Option } from "effect";
 import { Redacted } from "effect";
-import { NoSuchElementException } from "effect/Cause";
 import { StatusCodes } from "http-status-codes";
 import { NextResponse, userAgent } from "next/server";
 
@@ -170,9 +169,9 @@ export const GET = async (request: Request) => {
         ),
       ),
     ),
-    Effect.provide(GithubOAuth.Default),
-    Effect.provide(FetchHttpClient.layer),
-    Effect.provide(Database.Default),
+    provideGithubOAuth,
+    githubRepo.provideFetchLayer,
+    provideDB,
     Effect.scoped,
     Effect.runPromise,
   );
