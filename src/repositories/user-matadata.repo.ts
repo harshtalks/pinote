@@ -10,7 +10,7 @@ import {
 } from "@/db/schema/*";
 import { Branded, NonEmptyArray } from "@/types/*";
 import { bufferToUint8Array, uint8ArrayToBuffer } from "@/utils/casting";
-import { DBError, getErrorMessage, NoRowsReturnedError } from "@/utils/errors";
+import { getErrorMessage, httpError } from "@/utils/*";
 import { eq } from "drizzle-orm";
 import { Effect, Redacted } from "effect";
 
@@ -31,12 +31,13 @@ export const createUserMeta = (
             recoveryCode: uint8ArrayToBuffer(token),
           })
           .returning(),
-      catch: (error) => new DBError({ message: getErrorMessage(error) }),
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
     }),
     Effect.filterOrFail(
       (result): result is NonEmptyArray<UserMetadata> => result.length > 0,
       () =>
-        new NoRowsReturnedError({
+        new httpError.NotFoundError({
           message: "No User metadata was returned by the db",
         }),
     ),
@@ -49,12 +50,13 @@ export const getUserMetaRecoveryCode = (userId: Branded.UserId) =>
     Effect.tryMapPromise({
       try: (db) =>
         db.select().from(userMetadata).where(eq(userMetadata.userId, userId)),
-      catch: (error) => new DBError({ message: getErrorMessage(error) }),
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
     }),
     Effect.filterOrFail(
       (result): result is NonEmptyArray<UserMetadata> => result.length > 0,
       () =>
-        new NoRowsReturnedError({
+        new httpError.NotFoundError({
           message: "No User metadata was returned by the db",
         }),
     ),
@@ -98,7 +100,7 @@ export const resetUserMetaRecoveryCode =
               .where(eq(users.id, userId));
           }),
         catch: (error) =>
-          new DBError({
+          new httpError.InternalServerError({
             message: getErrorMessage(error),
           }),
       }),

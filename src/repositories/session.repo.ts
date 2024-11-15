@@ -9,13 +9,7 @@ import {
   User,
 } from "@/db/schema/*";
 import { Branded, NonEmptyArray } from "@/types/*";
-import {
-  DBError,
-  DeleteEntityError,
-  getErrorMessage,
-  NoRowsReturnedError,
-  UncaughtError,
-} from "@/utils/*";
+import { getErrorMessage, httpError } from "@/utils/*";
 import { eq } from "drizzle-orm";
 import { Duration, Effect } from "effect";
 
@@ -24,12 +18,13 @@ export const createSession = (session: SessionInsert) =>
   Database.pipe(
     Effect.tryMapPromise({
       try: (db) => db.insert(sessions).values(session).returning(),
-      catch: (error) => new DBError({ message: getErrorMessage(error) }),
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
     }),
     Effect.filterOrFail(
       (result): result is NonEmptyArray<Session> => result.length > 0,
       () =>
-        new NoRowsReturnedError({
+        new httpError.NotFoundError({
           message: "no rows returned",
         }),
     ),
@@ -42,12 +37,13 @@ export const getSessionBySessionId = (sessionId: Branded.SessionId) =>
     Effect.tryMapPromise({
       try: (db) =>
         db.select().from(sessions).where(eq(sessions.sessionId, sessionId)),
-      catch: (error) => new DBError({ message: getErrorMessage(error) }),
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
     }),
     Effect.filterOrFail(
       (result): result is NonEmptyArray<Session> => result.length > 0,
       () =>
-        new NoRowsReturnedError({
+        new httpError.NotFoundError({
           message: "could not find the session with the session id",
         }),
     ),
@@ -66,7 +62,8 @@ export type SessionWithUser = Session & {
 export const getSessionBySessionIdWithUser = (sessionId: Branded.SessionId) =>
   Database.pipe(
     Effect.tryMapPromise({
-      catch: (error) => new DBError({ message: getErrorMessage(error) }),
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
       try: (db) =>
         db.query.sessions.findFirst({
           where: (table, { eq }) => eq(table.sessionId, sessionId),
@@ -89,7 +86,8 @@ export const getSessionBySessionIdWithUser = (sessionId: Branded.SessionId) =>
 export const deleteSession = (sessionId: Branded.SessionId) =>
   Database.pipe(
     Effect.tryMapPromise({
-      catch: (error) => new DBError({ message: getErrorMessage(error) }),
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
       try: (db) =>
         db
           .delete(sessions)
@@ -99,14 +97,14 @@ export const deleteSession = (sessionId: Branded.SessionId) =>
     Effect.filterOrFail(
       (result) => result.length > 0,
       () =>
-        new DeleteEntityError({
+        new httpError.InternalServerError({
           message: "something went wrong while deleting the session",
         }),
     ),
     Effect.filterOrFail(
       (result): result is NonEmptyArray<Session> => result.length > 0,
       () =>
-        new NoRowsReturnedError({
+        new httpError.NotFoundError({
           message: "Something went wrong while deleting the session",
         }),
     ),
@@ -120,7 +118,8 @@ export const updateSessionExpiry = (
 ) =>
   Database.pipe(
     Effect.tryMapPromise({
-      catch: (error) => new DBError({ message: getErrorMessage(error) }),
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
       try: (db) =>
         db
           .update(sessions)
@@ -136,13 +135,14 @@ export const updateSessionExpiry = (
     Effect.filterOrFail(
       (result): result is NonEmptyArray<Session> => result.length > 0,
       () =>
-        new NoRowsReturnedError({
+        new httpError.NotFoundError({
           message: "Something went wrong while updating the session expiry",
         }),
     ),
     Effect.map((res) => res[0]),
     Effect.catchAllDefect(
-      (error) => new UncaughtError({ message: getErrorMessage(error) }),
+      (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
     ),
   );
 
@@ -150,7 +150,6 @@ export const setSessionTFStatus =
   (sessionId: Branded.SessionId) => (value: boolean) =>
     Database.pipe(
       Effect.tryMapPromise({
-        catch: (error) => new DBError({ message: getErrorMessage(error) }),
         try: (db) =>
           db
             .update(sessions)
@@ -159,18 +158,25 @@ export const setSessionTFStatus =
             })
             .where(eq(sessions.sessionId, sessionId))
             .returning(),
+        catch: (error) =>
+          new httpError.InternalServerError({
+            message: getErrorMessage(error),
+          }),
       }),
 
       Effect.filterOrFail(
         (result): result is NonEmptyArray<Session> => result.length > 0,
         () =>
-          new NoRowsReturnedError({
+          new httpError.NotFoundError({
             message:
               "Something went wrong while setting up the two factor status for the session",
           }),
       ),
       Effect.map((res) => res[0]),
       Effect.catchAllDefect(
-        (error) => new UncaughtError({ message: getErrorMessage(error) }),
+        (error) =>
+          new httpError.InternalServerError({
+            message: getErrorMessage(error),
+          }),
       ),
     );

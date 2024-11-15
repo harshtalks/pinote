@@ -105,14 +105,24 @@ export const validateSession = (sessionWithUser: SessionWithUser | undefined) =>
       );
 
       return Either.right({
-        user: sessionWithUser.user,
+        user: {
+          ...sessionWithUser.user,
+          authenticators: sessionWithUser.user.authenticators.map(
+            (auth) => auth.id,
+          ),
+        },
         session,
       });
     }
 
     return Either.right({
       session: sessionWithUser as Session,
-      user: sessionWithUser.user,
+      user: {
+        ...sessionWithUser.user,
+        authenticators: sessionWithUser.user.authenticators.map(
+          (auth) => auth.id,
+        ),
+      },
     });
   });
 

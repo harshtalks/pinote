@@ -13,15 +13,13 @@ export class TfChallenges extends Effect.Service<TfChallenges>()(
   createChallenge() {
     return TfChallenges.pipe(
       Effect.andThen((challengesRef) =>
-        Effect.sync(() => new Uint8Array()).pipe(
+        Effect.sync(() => new Uint8Array(20)).pipe(
           Effect.tap(crypto.getRandomValues),
-          Effect.andThen(encodeHexLowerCase),
-          Effect.andThen((encoded) => {
+          Effect.tap((challenge) =>
             SynchronizedRef.update(challengesRef, (challenges) =>
-              challenges.add(encoded),
-            );
-            return encoded;
-          }),
+              challenges.add(encodeHexLowerCase(challenge)),
+            ),
+          ),
         ),
       ),
     );
@@ -31,8 +29,9 @@ export class TfChallenges extends Effect.Service<TfChallenges>()(
     return TfChallenges.pipe(
       Effect.map((challengesRef) => {
         const encodedChallenge = encodeHexLowerCase(challenge);
-        const exists =
-          SynchronizedRef.get(challengesRef).hasOwnProperty(encodedChallenge);
+        const exists = SynchronizedRef.get(challengesRef).pipe(
+          Effect.andThen((set) => set.has(encodedChallenge)),
+        );
         SynchronizedRef.update(challengesRef, (challenges) => {
           challenges.delete(encodedChallenge);
           return challenges;

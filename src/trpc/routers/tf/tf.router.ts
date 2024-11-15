@@ -2,7 +2,7 @@
 
 import { authenticatedProcedure, createTRPCRouter } from "@/trpc/trpc";
 import { asEither, failwithTrpcErr, inputAsSchema } from "@/trpc/utils.trpc";
-import { decodeBase64 } from "@oslojs/encoding";
+import { decodeBase64, encodeBase64 } from "@oslojs/encoding";
 import { TRPCError } from "@trpc/server";
 import { Effect, Schema } from "effect";
 import {
@@ -34,7 +34,6 @@ import {
   TfChallenges,
 } from "@/auth/two-factor/challenge.ref";
 import { AuthenticatorInsert } from "@/db/schema/*";
-import { bufferToUint8Array, uint8ArrayToBuffer } from "@/utils/casting";
 import {
   authenticatorRepo,
   sessionRepo,
@@ -45,6 +44,7 @@ import { Branded } from "@/types/*";
 import { provideDB } from "@/db/*";
 import { trpcRunTime } from "@/trpc/layer/*";
 import { sha256 } from "@oslojs/crypto/sha2";
+import { Result } from "@/utils/*";
 
 export const tfRouter = createTRPCRouter({
   // Registering a new two factor auth device
@@ -196,11 +196,11 @@ export const tfRouter = createTRPCRouter({
             ).encodeSEC1Uncompressed();
 
             return {
-              id: uint8ArrayToBuffer(authenticatorData.credential.id),
+              id: encodeBase64(authenticatorData.credential.id),
               userId: user.id,
               name: input.name,
               algorithm: coseAlgorithmES256,
-              credentialPublicKey: uint8ArrayToBuffer(encodedPublicKey),
+              credentialPublicKey: encodeBase64(encodedPublicKey),
             } as AuthenticatorInsert;
           } else if (
             authenticatorData.credential.publicKey.algorithm() ===
@@ -214,11 +214,11 @@ export const tfRouter = createTRPCRouter({
             ).encodePKCS1();
 
             return {
-              id: uint8ArrayToBuffer(authenticatorData.credential.id),
+              id: encodeBase64(authenticatorData.credential.id),
               userId: user.id,
               name: input.name,
               algorithm: coseAlgorithmRS256,
-              credentialPublicKey: uint8ArrayToBuffer(encodedPublicKey),
+              credentialPublicKey: encodeBase64(encodedPublicKey),
             } as AuthenticatorInsert;
           } else {
             return yield* failwithTrpcErr(
@@ -230,9 +230,9 @@ export const tfRouter = createTRPCRouter({
           }
         });
 
-        const userCredentials = yield* authenticatorRepo.getUserAuthenticators(
-          Branded.UserId(user.id),
-        );
+        const userCredentials = yield* authenticatorRepo
+          .getUserAuthenticators(Branded.UserId(user.id))
+          .pipe(Effect.catchTag("NotFoundError", () => Effect.succeed([])));
 
         if (userCredentials.length > 5) {
           return yield* failwithTrpcErr(
@@ -245,11 +245,9 @@ export const tfRouter = createTRPCRouter({
 
         yield* authenticatorRepo.createNewAuthenticator(credential);
 
-        if (!session.tfVerified) {
-          yield* sessionRepo.setSessionTFStatus(Branded.SessionId(session.id))(
-            true,
-          );
-        }
+        yield* sessionRepo.setSessionTFStatus(
+          Branded.SessionId(session.sessionId),
+        )(true);
 
         return {
           success: true,
@@ -258,7 +256,14 @@ export const tfRouter = createTRPCRouter({
             Branded.UserId(user.id),
           ),
         };
-      }).pipe(provideDB, provideChallengeRef, asEither, trpcRunTime.runPromise),
+      }).pipe(
+        provideDB,
+        provideChallengeRef,
+        Result.flatten,
+        Result.catchAll,
+        Result.catchAllDefect,
+        trpcRunTime.runPromise,
+      ),
     ),
   // Get the status of the user's two factor auth
   tfStatus: authenticatedProcedure.query(({ ctx }) =>
@@ -373,7 +378,7 @@ export const tfRouter = createTRPCRouter({
             const ecdsaSignature = decodePKIXECDSASignature(signatureBytes);
             const ecdsaPublicKey = decodeSEC1PublicKey(
               p256,
-              bufferToUint8Array(authenticator.credentialPublicKey),
+              decodeBase64(authenticator.credentialPublicKey),
             );
             const hash = sha256(
               createAssertionSignatureMessage(
@@ -385,7 +390,7 @@ export const tfRouter = createTRPCRouter({
             return verifyECDSASignature(ecdsaPublicKey, hash, ecdsaSignature);
           } else if (authenticator.algorithm === coseAlgorithmRS256) {
             const rsaPublicKey = decodePKCS1RSAPublicKey(
-              bufferToUint8Array(authenticator.credentialPublicKey),
+              decodeBase64(authenticator.credentialPublicKey),
             );
             const hash = sha256(
               createAssertionSignatureMessage(
@@ -446,4 +451,35 @@ export const tfRouter = createTRPCRouter({
         trpcRunTime.runPromise,
       ),
     ),
+  // Create a Challenge
+  createChallenge: authenticatedProcedure.mutation(() =>
+    TfChallenges.pipe(
+      Effect.andThen((challenges) => challenges.createChallenge()),
+      Effect.andThen(encodeBase64),
+      Result.flatten,
+      Result.catchAllDefect,
+      provideChallengeRef,
+      trpcRunTime.runPromise,
+    ),
+  ),
+  updateTfStatus: authenticatedProcedure
+    .input(
+      inputAsSchema(
+        Schema.Struct({
+          status: Schema.Boolean,
+        }),
+      ),
+    )
+    .mutation(({ ctx, input }) => {
+      return ctx.session.pipe(
+        Effect.andThen(({ user: { id } }) =>
+          userRepo.updateTFStatus(Branded.UserId(id))(input.status),
+        ),
+        Result.flatten,
+        Result.catchAll,
+        Result.catchAllDefect,
+        provideDB,
+        trpcRunTime.runPromise,
+      );
+    }),
 });

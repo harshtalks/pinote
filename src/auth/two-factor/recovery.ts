@@ -3,7 +3,7 @@ import { Effect } from "effect";
 import { createCipheriv, createDecipheriv, getRandomValues } from "crypto";
 import env from "../../../env";
 import { DynamicBuffer } from "@oslojs/binary";
-import { InvalidEncryptedDataError } from "@/utils/errors";
+import { UncaughtError } from "@/utils/*";
 
 // Generate the recovery code for the user
 export const generateRecoveryCode = () =>
@@ -47,7 +47,7 @@ export const decrypt = (encrypted: Uint8Array) =>
     Effect.filterOrFail(
       (encrypted) => encrypted.byteLength >= 33,
       () =>
-        new InvalidEncryptedDataError({
+        new UncaughtError({
           message: "Invalid encrypted data provided for decryption",
         }),
     ),

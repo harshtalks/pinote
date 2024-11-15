@@ -62,9 +62,7 @@ export const GET = async (request: Request) => {
       .getUserByGithubId(Branded.GithubId(githubUser.login))
       .pipe(
         Effect.map(Option.some),
-        Effect.catchTag("NoRowsReturnedError", () =>
-          Effect.succeed(Option.none()),
-        ),
+        Effect.catchTag("NotFoundError", () => Effect.succeed(Option.none())),
       );
 
     if (Option.isSome(user)) {

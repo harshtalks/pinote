@@ -5,12 +5,8 @@ import { createdAtSchema, updatedAtSchema } from "../schema.common";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 export const authenticators = sqliteTable("authenticators", {
-  id: t
-    .blob({
-      mode: "buffer",
-    })
-    .primaryKey()
-    .notNull(),
+  // Blob -> string
+  id: t.text().primaryKey().notNull(),
   userId: t
     .text()
     .notNull()
@@ -20,11 +16,8 @@ export const authenticators = sqliteTable("authenticators", {
   name: t.text().notNull(),
   createdAt: createdAtSchema,
   updatedAt: updatedAtSchema,
-  credentialPublicKey: t
-    .blob({
-      mode: "buffer",
-    })
-    .notNull(),
+  // Blob -> string
+  credentialPublicKey: t.text().notNull(),
   algorithm: t
     .integer({
       mode: "number",

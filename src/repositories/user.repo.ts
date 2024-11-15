@@ -1,7 +1,7 @@
 import Database from "@/db/*";
 import { User, UserInsert, users } from "@/db/schema/*";
 import { Branded } from "@/types/*";
-import { DBError, getErrorMessage, NoRowsReturnedError } from "@/utils/errors";
+import { getErrorMessage, httpError } from "@/utils/*";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { NonEmptyArray } from "@/types/*";
@@ -11,14 +11,14 @@ export const getUserById = (userId: Branded.UserId) =>
     Effect.tryMapPromise({
       try: (db) => db.select().from(users).where(eq(users.id, userId)),
       catch: (error) =>
-        new DBError({
+        new httpError.InternalServerError({
           message: getErrorMessage(error),
         }),
     }),
     Effect.filterOrFail(
       (result): result is NonEmptyArray<User> => result.length > 0,
       () =>
-        new NoRowsReturnedError({
+        new httpError.NotFoundError({
           message: "We could not find user associated with given user id",
         }),
     ),
@@ -30,14 +30,14 @@ export const getUserByGithubId = (githubId: Branded.GithubId) =>
     Effect.tryMapPromise({
       try: (db) => db.select().from(users).where(eq(users.githubId, githubId)),
       catch: (error) =>
-        new DBError({
+        new httpError.InternalServerError({
           message: getErrorMessage(error),
         }),
     }),
     Effect.filterOrFail(
       (result): result is NonEmptyArray<User> => result.length > 0,
       () =>
-        new NoRowsReturnedError({
+        new httpError.NotFoundError({
           message:
             "We could not find user associated with given github login id",
         }),
@@ -50,14 +50,14 @@ export const createNewUser = (user: UserInsert) => {
     Effect.tryMapPromise({
       try: (db) => db.insert(users).values(user).returning(),
       catch: (error) =>
-        new DBError({
+        new httpError.InternalServerError({
           message: getErrorMessage(error),
         }),
     }),
     Effect.filterOrFail(
       (result): result is NonEmptyArray<User> => result.length > 0,
       () =>
-        new NoRowsReturnedError({
+        new httpError.NotFoundError({
           message: "DB did not return any user",
         }),
     ),
@@ -77,14 +77,37 @@ export const updateTfSkipStatus = (userId: Branded.UserId) => (skip: boolean) =>
           .where(eq(users.id, userId))
           .returning(),
       catch: (error) =>
-        new DBError({
+        new httpError.InternalServerError({
           message: getErrorMessage(error),
         }),
     }),
     Effect.filterOrFail(
       (result): result is NonEmptyArray<User> => result.length > 0,
       () =>
-        new NoRowsReturnedError({
+        new httpError.NotFoundError({
+          message:
+            "We could not find user associated with given github login id",
+        }),
+    ),
+    Effect.andThen((users) => users[0]),
+  );
+
+export const updateTFStatus = (userId: Branded.UserId) => (status: boolean) =>
+  Database.pipe(
+    Effect.tryMapPromise({
+      try: (db) =>
+        db
+          .update(users)
+          .set({ twoFactorAuth: status })
+          .where(eq(users.id, userId))
+          .returning(),
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
+    }),
+    Effect.filterOrFail(
+      (result): result is NonEmptyArray<User> => result.length > 0,
+      () =>
+        new httpError.NotFoundError({
           message:
             "We could not find user associated with given github login id",
         }),

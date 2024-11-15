@@ -1,4 +1,4 @@
-import { getErrorMessage, UncaughtError } from "@/utils/errors";
+import { getErrorMessage, UncaughtError } from "@/utils/*";
 import { Duration, Effect } from "effect";
 import { cookies } from "next/headers";
 import env from "../../env";

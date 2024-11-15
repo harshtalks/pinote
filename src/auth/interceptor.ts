@@ -1,7 +1,7 @@
 // Auth interceptor
 
 import SigninPageRoute from "@/app/(pages)/sign-in/route.info";
-import { Effect, Either, Match, Option, Redacted } from "effect";
+import { Effect, Either, Redacted } from "effect";
 import { ReadonlyHeaders } from "next/dist/server/web/spec-extension/adapters/headers";
 import { AUTH_COOKIE_NAME, cookie } from "./*";
 import { redirect } from "next/navigation";
@@ -11,7 +11,6 @@ import TwoFactorPageRoute from "@/app/(pages)/two-factor/route.info";
 import TwoFactorVerificationPageRoute from "@/app/(pages)/two-factor/verification/route.info";
 import { SessionWithUser } from "@/repositories/session.repo";
 import WorkspacesPageRoute from "@/app/(pages)/(workspaces)/workspaces/route.info";
-import { asEither } from "@/trpc/utils.trpc";
 
 export class AuthInterceptor {
   // Path -> take the path of the current page. route directory
@@ -195,10 +194,14 @@ export class AuthInterceptor {
       });
     }
 
-    if (user.twoFactorAuth && !session.tfVerified) {
-      return this.#redirectOrDoNothing(
-        user.authenticators.length > 0 ? "tf" : "tf-reg",
-      );
-    }
+    // if (user.twoFactorAuth && !session.tfVerified) {
+    //   return this.#redirectOrDoNothing(
+    //     user.authenticators.length > 0 ? "tf" : "tf-reg",
+    //   );
+    // }
+
+    return this.#redirectOrDoNothing(
+      user.authenticators.length > 0 ? "tf" : "tf-reg",
+    );
   }
 }

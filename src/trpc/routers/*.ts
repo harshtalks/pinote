@@ -6,12 +6,14 @@ import {
   createTRPCRouter,
 } from "../trpc";
 import { tfRouter } from "./tf/*";
+import { userRouter } from "./user/*";
 
 export const appRouter = createTRPCRouter({
   health: authenticatedProcedure.query(() => {
     return "Hello World!!";
   }),
   twoFactor: tfRouter,
+  user: userRouter,
 });
 
 /**

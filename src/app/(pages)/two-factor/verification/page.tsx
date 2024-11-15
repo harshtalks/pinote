@@ -8,6 +8,7 @@ import { Fingerprint } from "lucide-react";
 import TwoFactorVerificationPageRoute from "./route.info";
 import { headers } from "next/headers";
 import { SkipStatus } from "@/components/features/tf/skip-status";
+import { RegisterTwoFactor } from "@/components/features/tf/*";
 
 const TwoFactorPage = async () => {
   await new AuthInterceptor()
@@ -31,13 +32,15 @@ const TwoFactorPage = async () => {
             Pinote uses state of the art two factor authentication using
             webauthn passkeys to secure your account.
           </p>
-          <Button
-            size="sm"
-            variant="shine"
-            className="w-full tracking-normal font-cal group"
-          >
-            Verify with Webauthn
-          </Button>
+          <RegisterTwoFactor>
+            <Button
+              size="sm"
+              variant="shine"
+              className="w-full tracking-normal font-cal group"
+            >
+              Verify with Webauthn
+            </Button>
+          </RegisterTwoFactor>
           <hr />
           <div className="flex items-center gap-1">
             <p className="text-muted-foreground text-xs">

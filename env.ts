@@ -17,6 +17,7 @@ const env = createEnv({
       .url()
       .default("http://localhost:3000/api/auth/github/callback"),
     NODE_ENV: z.enum(["development", "production"]).default("development"),
+    ENCRYPTION_KEY: z.string().min(1),
   },
   /*
    * Environment variables available on the client (and server).
@@ -37,6 +38,7 @@ const env = createEnv({
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     GITHUB_REDIRECT_URI: process.env.GITHUB_REDIRECT_URI,
     NODE_ENV: process.env.NODE_ENV,
+    ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
   },
 });
 

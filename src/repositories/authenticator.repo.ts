@@ -5,30 +5,25 @@ import {
   authenticators,
 } from "@/db/schema/*";
 import { Branded, NonEmptyArray } from "@/types/*";
-import { uint8ArrayToBuffer } from "@/utils/casting";
-import {
-  DBError,
-  getErrorMessage,
-  NoAuthenticatorError,
-  NoRowsReturnedError,
-} from "@/utils/errors";
+import { getErrorMessage, httpError } from "@/utils/*";
 import { and, eq } from "drizzle-orm";
 import { Effect } from "effect";
+import { encodeBase64 } from "@oslojs/encoding";
 
 export const getAuthenticatorById = (credentialId: Uint8Array) =>
   Database.pipe(
     Effect.tryMapPromise({
       try: (db) =>
         db.query.authenticators.findFirst({
-          where: (table, { eq }) =>
-            eq(table.id, uint8ArrayToBuffer(credentialId)),
+          where: (table, { eq }) => eq(table.id, encodeBase64(credentialId)),
         }),
-      catch: (error) => new DBError({ message: getErrorMessage(error) }),
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
     }),
     Effect.filterOrFail(
       (result): result is Authenticator => !!result,
       () =>
-        new NoAuthenticatorError({
+        new httpError.NotFoundError({
           message: "No authenticator was found",
         }),
     ),
@@ -42,16 +37,19 @@ export const getUserAuthenticator =
           db.query.authenticators.findFirst({
             where: (table, { eq, and }) =>
               and(
-                eq(table.id, uint8ArrayToBuffer(credentialId)),
+                eq(table.id, encodeBase64(credentialId)),
                 eq(table.userId, userId),
               ),
           }),
-        catch: (error) => new DBError({ message: getErrorMessage(error) }),
+        catch: (error) =>
+          new httpError.InternalServerError({
+            message: getErrorMessage(error),
+          }),
       }),
       Effect.filterOrFail(
         (result): result is Authenticator => !!result,
         () =>
-          new NoAuthenticatorError({
+          new httpError.NotFoundError({
             message: "No authenticator was found for the user",
           }),
       ),
@@ -64,12 +62,13 @@ export const getUserAuthenticators = (userId: Branded.UserId) =>
         db.query.authenticators.findMany({
           where: (table, { eq, and }) => and(eq(table.userId, userId)),
         }),
-      catch: (error) => new DBError({ message: getErrorMessage(error) }),
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
     }),
     Effect.filterOrFail(
       (result): result is Authenticator[] => !!result.length,
       () =>
-        new NoAuthenticatorError({
+        new httpError.NotFoundError({
           message: "No authenticators were found for the user",
         }),
     ),
@@ -79,12 +78,13 @@ export const createNewAuthenticator = (authenticator: AuthenticatorInsert) => {
   return Database.pipe(
     Effect.tryMapPromise({
       try: (db) => db.insert(authenticators).values(authenticator).returning(),
-      catch: (error) => new DBError({ message: getErrorMessage(error) }),
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
     }),
     Effect.filterOrFail(
       (result): result is NonEmptyArray<Authenticator> => result.length > 0,
       () =>
-        new NoRowsReturnedError({
+        new httpError.NotFoundError({
           message: "No authenticator was created",
         }),
     ),
@@ -102,16 +102,19 @@ export const deleteUserAuthenticator =
             .where(
               and(
                 eq(authenticators.userId, userId),
-                eq(authenticators.id, uint8ArrayToBuffer(credentialId)),
+                eq(authenticators.id, encodeBase64(credentialId)),
               ),
             )
             .returning(),
-        catch: (error) => new DBError({ message: getErrorMessage(error) }),
+        catch: (error) =>
+          new httpError.InternalServerError({
+            message: getErrorMessage(error),
+          }),
       }),
       Effect.filterOrFail(
         (result): result is NonEmptyArray<Authenticator> => result.length > 0,
         () =>
-          new NoRowsReturnedError({
+          new httpError.NotFoundError({
             message: "No authenticator was deleted",
           }),
       ),
