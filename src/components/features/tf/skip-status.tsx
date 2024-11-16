@@ -2,22 +2,28 @@
 
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/client";
-import { toast } from "sonner";
+import { runAsyncAndNotify } from "@/utils/toast";
+import { useRouter } from "next/navigation";
 
 export const SkipStatus = () => {
-  const mutation = api.twoFactor.tfSkip.useMutation();
+  const router = useRouter();
+  const mutation = api.twoFactor.tfSkip.useMutation({
+    onSuccess: () => {
+      router.refresh();
+    },
+  });
+
   return (
     <Button
       size="sm"
       onClick={() =>
-        toast.promise(
-          mutation.mutateAsync({
-            skip: true,
-          }),
+        runAsyncAndNotify(
+          () =>
+            mutation.mutateAsync({
+              skip: true,
+            }),
           {
-            loading: "Wait while we request your process...",
-            success: () => "You have successfully skipped the process",
-            error: (err) => err.message,
+            success: () => "Two-factor authentication has been skipped",
           },
         )
       }

@@ -121,3 +121,25 @@ export const deleteUserAuthenticator =
       Effect.andThen((result) => result[0]),
     );
   };
+
+export const deleteAuthenticators = (userId: Branded.UserId) =>
+  Database.pipe(
+    Effect.tryMapPromise({
+      try: (db) =>
+        db
+          .delete(authenticators)
+          .where(and(eq(authenticators.userId, userId)))
+          .returning(),
+      catch: (error) =>
+        new httpError.InternalServerError({
+          message: getErrorMessage(error),
+        }),
+    }),
+    Effect.filterOrFail(
+      (result): result is NonEmptyArray<Authenticator> => result.length > 0,
+      () =>
+        new httpError.NotFoundError({
+          message: "No authenticator was deleted",
+        }),
+    ),
+  );

@@ -53,6 +53,7 @@
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "tempeh": "5.0.6",
+    "toldo": "^0.1.4",
     "vaul": "^1.1.1",
     "zod": "^3.23.8",
     "zod-validation-error": "^3.4.0"

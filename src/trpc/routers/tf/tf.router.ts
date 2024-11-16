@@ -4,7 +4,7 @@ import { authenticatedProcedure, createTRPCRouter } from "@/trpc/trpc";
 import { asEither, failwithTrpcErr, inputAsSchema } from "@/trpc/utils.trpc";
 import { decodeBase64, encodeBase64 } from "@oslojs/encoding";
 import { TRPCError } from "@trpc/server";
-import { Effect, Schema } from "effect";
+import { Effect, Redacted, Schema } from "effect";
 import {
   decodePKIXECDSASignature,
   decodeSEC1PublicKey,
@@ -45,6 +45,7 @@ import { provideDB } from "@/db/*";
 import { trpcRunTime } from "@/trpc/layer/*";
 import { sha256 } from "@oslojs/crypto/sha2";
 import { Result } from "@/utils/*";
+import { resetTwoFactor } from "@/auth/two-factor/reset-tf";
 
 export const tfRouter = createTRPCRouter({
   // Registering a new two factor auth device
@@ -269,7 +270,9 @@ export const tfRouter = createTRPCRouter({
   tfStatus: authenticatedProcedure.query(({ ctx }) =>
     ctx.session.pipe(
       Effect.map(({ user: { twoFactorAuth } }) => twoFactorAuth),
-      asEither,
+      Result.flatten,
+      Result.catchAll,
+      Result.catchAllDefect,
       provideDB,
       trpcRunTime.runPromise,
     ),
@@ -423,15 +426,22 @@ export const tfRouter = createTRPCRouter({
           );
         }
 
-        yield* sessionRepo.setSessionTFStatus(Branded.SessionId(session.id))(
-          true,
-        );
+        yield* sessionRepo.setSessionTFStatus(
+          Branded.SessionId(session.sessionId),
+        )(true);
 
         return {
           success: true,
           message: "Successfully verified two factor auth",
         };
-      }),
+      }).pipe(
+        provideDB,
+        provideChallengeRef,
+        Result.flatten,
+        Result.catchAll,
+        Result.catchAllDefect,
+        trpcRunTime.runPromise,
+      ),
     ),
   // Disable the user's two factor auth
   tfSkip: authenticatedProcedure
@@ -447,6 +457,9 @@ export const tfRouter = createTRPCRouter({
         Effect.andThen(({ user }) =>
           userRepo.updateTfSkipStatus(Branded.UserId(user.id))(input.skip),
         ),
+        Result.flatten,
+        Result.catchAll,
+        Result.catchAllDefect,
         provideDB,
         trpcRunTime.runPromise,
       ),
@@ -479,6 +492,32 @@ export const tfRouter = createTRPCRouter({
         Result.catchAll,
         Result.catchAllDefect,
         provideDB,
+        trpcRunTime.runPromise,
+      );
+    }),
+  // Recover the user's account with recovery code
+  recoverAccount: authenticatedProcedure
+    .input(
+      inputAsSchema(
+        Schema.Struct({
+          recoveryCode: Schema.String,
+        }),
+      ),
+    )
+    .mutation(({ ctx, input }) => {
+      return Effect.gen(function* () {
+        const {
+          user: { id },
+        } = yield* ctx.session;
+
+        return yield* resetTwoFactor(Branded.UserId(id))(
+          Redacted.make(input.recoveryCode),
+        );
+      }).pipe(
+        provideDB,
+        Result.flatten,
+        Result.catchAll,
+        Result.catchAllDefect,
         trpcRunTime.runPromise,
       );
     }),

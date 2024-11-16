@@ -1,10 +1,6 @@
 // sometimes we want to cast an input to a specific type
 
-import {
-  getErrorMessage,
-  TrpcCustomError,
-  UncaughtError,
-} from "@/utils/errors";
+import { getErrorMessage, UncaughtError } from "@/utils/errors";
 import { TRPCError } from "@trpc/server";
 import { Effect, Either, Schema } from "effect";
 

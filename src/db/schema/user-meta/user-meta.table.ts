@@ -15,11 +15,7 @@ export const userMetadata = sqliteTable("usersMetadata", {
     .references(() => users.id, {
       onDelete: "cascade",
     }),
-  recoveryCode: t
-    .blob({
-      mode: "buffer",
-    })
-    .notNull(),
+  recoveryCode: t.text().notNull(),
 });
 
 export type UserMetadata = InferSelectModel<typeof userMetadata>;

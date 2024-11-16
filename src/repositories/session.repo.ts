@@ -95,13 +95,6 @@ export const deleteSession = (sessionId: Branded.SessionId) =>
           .returning(),
     }),
     Effect.filterOrFail(
-      (result) => result.length > 0,
-      () =>
-        new httpError.InternalServerError({
-          message: "something went wrong while deleting the session",
-        }),
-    ),
-    Effect.filterOrFail(
       (result): result is NonEmptyArray<Session> => result.length > 0,
       () =>
         new httpError.NotFoundError({
@@ -109,6 +102,24 @@ export const deleteSession = (sessionId: Branded.SessionId) =>
         }),
     ),
     Effect.andThen((res) => res[0]),
+  );
+
+// delete all sessions
+export const deleteSessions = (userId: Branded.UserId) =>
+  Database.pipe(
+    Effect.tryMapPromise({
+      catch: (error) =>
+        new httpError.InternalServerError({ message: getErrorMessage(error) }),
+      try: (db) =>
+        db.delete(sessions).where(eq(sessions.userId, userId)).returning(),
+    }),
+    Effect.filterOrFail(
+      (result): result is NonEmptyArray<Session> => result.length > 0,
+      () =>
+        new httpError.NotFoundError({
+          message: "Something went wrong while deleting the session",
+        }),
+    ),
   );
 
 // This will update the session expiry

@@ -3,8 +3,13 @@ import { User, UserInsert, users } from "@/db/schema/*";
 import { Branded } from "@/types/*";
 import { getErrorMessage, httpError } from "@/utils/*";
 import { eq } from "drizzle-orm";
-import { Effect } from "effect";
+import { Effect, Redacted } from "effect";
 import { NonEmptyArray } from "@/types/*";
+import { authenticatorRepo, sessionRepo } from "./*";
+import { encryptString } from "@/auth/two-factor/recovery";
+import { tf } from "@/auth/*";
+import { resetTwoFactor } from "@/auth/two-factor/reset-tf";
+import { encodeBase64 } from "@oslojs/encoding";
 
 export const getUserById = (userId: Branded.UserId) =>
   Database.pipe(
@@ -114,3 +119,46 @@ export const updateTFStatus = (userId: Branded.UserId) => (status: boolean) =>
     ),
     Effect.andThen((users) => users[0]),
   );
+
+export const resetUserTf = (userId: Branded.UserId) =>
+  Database.pipe(
+    Effect.tryMapPromise({
+      try: (db) =>
+        db
+          .update(users)
+          .set({
+            twoFactorAuth: false,
+            skippedTfStep: false,
+          })
+          .where(eq(users.id, userId))
+          .returning(),
+      catch: (error) =>
+        new httpError.InternalServerError({
+          message: getErrorMessage(error),
+        }),
+    }),
+    Effect.filterOrFail(
+      (result): result is NonEmptyArray<User> => result.length > 0,
+      () =>
+        new httpError.NotFoundError({
+          message:
+            "We could not find user associated with given github login id",
+        }),
+    ),
+    Effect.andThen((users) => users[0]),
+  );
+
+export const resetUser = (userId: Branded.UserId) =>
+  Effect.all([
+    sessionRepo.deleteSessions(userId),
+    authenticatorRepo.deleteAuthenticators(userId),
+    resetUserTf(userId),
+    tf
+      .generateRecoveryCode()
+      .pipe(
+        Effect.andThen(encryptString),
+        Effect.andThen(encodeBase64),
+        Effect.andThen(Redacted.make),
+        Effect.andThen(resetTwoFactor(userId)),
+      ),
+  ]).pipe(Effect.andThen(() => true));

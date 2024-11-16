@@ -4,8 +4,6 @@ import { Effect, Either } from "effect";
 import { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
 import Database from "@/db/*";
 import { readSessionFromCookieAndValidate } from "@/auth/auth.handlers";
-import { fromError } from "zod-validation-error";
-import { ZodError } from "zod";
 import { httpError } from "@/utils/*";
 
 /**
@@ -41,16 +39,9 @@ export const createTRPCContext = (opts: {
  */
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
-  errorFormatter({ shape, error }) {
+  errorFormatter({ shape }) {
     return {
       ...shape,
-      data: {
-        ...shape.data,
-        ZodError:
-          error.cause instanceof ZodError
-            ? fromError(error.cause.errors, { includePath: true })
-            : undefined,
-      },
     };
   },
 });

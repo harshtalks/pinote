@@ -1,4 +1,3 @@
-"use client";
 import {
   Credenza,
   CredenzaBody,
@@ -16,11 +15,17 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, UserCircle, X } from "lucide-react";
 import { api } from "@/trpc/client";
 import { decodeBase64, encodeBase64 } from "@oslojs/encoding";
-import { Effect } from "effect";
+import { Effect, Redacted } from "effect";
 import { getErrorMessage, UncaughtError } from "@/utils/errors";
 import { Notify, provideNotify, Result } from "@/utils/*";
 
-export const RegisterTwoFactor = ({ children }: { children: ReactNode }) => {
+export const RegisterTwoFactor = ({
+  children,
+  setVerificationCode,
+}: {
+  children: ReactNode;
+  setVerificationCode: (token: Redacted.Redacted<string>) => void;
+}) => {
   const challengeMutation = api.twoFactor.createChallenge.useMutation();
   const registration = api.twoFactor.register.useMutation();
   const changeUserTwoFactorStatus = api.twoFactor.updateTfStatus.useMutation();
@@ -37,7 +42,7 @@ export const RegisterTwoFactor = ({ children }: { children: ReactNode }) => {
       );
 
       if (Result.isErr(challenge)) {
-        yield* notify.updateToast("error")(challenge.error.message, true);
+        yield* notify.createToast("error")(challenge.error.message, true);
         return;
       } else {
         return yield* Result.getOk(challenge).pipe(
@@ -50,14 +55,14 @@ export const RegisterTwoFactor = ({ children }: { children: ReactNode }) => {
       Effect.catchAll((e) =>
         Notify.pipe(
           Effect.andThen((notify) =>
-            notify.updateToast("error")(getErrorMessage(e), true),
+            notify.createToast("error")(getErrorMessage(e), true),
           ),
         ),
       ),
       Effect.catchAllDefect((e) =>
         Notify.pipe(
           Effect.andThen((notify) =>
-            notify.updateToast("error")(getErrorMessage(e), true),
+            notify.createToast("error")(getErrorMessage(e), true),
           ),
         ),
       ),
@@ -70,12 +75,12 @@ export const RegisterTwoFactor = ({ children }: { children: ReactNode }) => {
       const notify = yield* Notify;
 
       if (!user) {
-        yield* notify.updateToast("error")("User not found", true);
+        yield* notify.createToast("error")("User not found", true);
         return;
       }
 
       if (!user.twoFactorAuth) {
-        yield* notify.updateToast("loading")(
+        yield* notify.createToast("loading")(
           "Enabling two factor authentication for user",
         );
 
@@ -86,12 +91,12 @@ export const RegisterTwoFactor = ({ children }: { children: ReactNode }) => {
         );
 
         if (Result.isErr(response)) {
-          yield* notify.updateToast("error")(response.error.message, true);
+          yield* notify.createToast("error")(response.error.message, true);
           return;
         }
       }
 
-      yield* notify.updateToast("loading")("Creating credentials");
+      yield* notify.createToast("loading")("Creating credentials");
 
       const credential = yield* Effect.promise(() =>
         navigator.credentials.create({
@@ -129,7 +134,7 @@ export const RegisterTwoFactor = ({ children }: { children: ReactNode }) => {
         }),
       );
 
-      yield* notify.updateToast("success")("Credentials created successfully");
+      yield* notify.createToast("success")("Credentials created successfully");
 
       return credential;
     });
@@ -160,7 +165,7 @@ export const RegisterTwoFactor = ({ children }: { children: ReactNode }) => {
         new Uint8Array(credential.response.clientDataJSON),
       );
 
-      yield* notify.updateToast("loading")(
+      yield* notify.createToast("loading")(
         "Registering credential with server",
       );
 
@@ -173,12 +178,13 @@ export const RegisterTwoFactor = ({ children }: { children: ReactNode }) => {
       );
 
       if (Result.isOk(response)) {
-        yield* notify.updateToast("success")(
-          "Credential registered successfully, You will be redirected in a few seconds",
+        setVerificationCode(Redacted.make(response.value.recoveryCode));
+        yield* notify.createToast("success")(
+          "Credential registered successfully, Please make a note of your verification token. You will not be able to recover of your account if you lose it.",
           true,
         );
       } else {
-        yield* notify.updateToast("error")(response.error.message, true);
+        yield* notify.createToast("error")(response.error.message, true);
       }
     });
 
@@ -197,58 +203,64 @@ export const RegisterTwoFactor = ({ children }: { children: ReactNode }) => {
             it will be only shown once and you will not be able to recover it.
           </CredenzaDescription>
         </CredenzaHeader>
-        <CredenzaBody>
-          <div className="group relative">
-            <label
-              htmlFor="input-32"
-              className="origin-start absolute top-1/2 block -translate-y-1/2 cursor-text px-1 text-sm text-muted-foreground/70 transition-all group-focus-within:pointer-events-none group-focus-within:top-0 group-focus-within:cursor-default group-focus-within:text-xs group-focus-within:font-medium group-focus-within:text-foreground has-[+input:not(:placeholder-shown)]:pointer-events-none has-[+input:not(:placeholder-shown)]:top-0 has-[+input:not(:placeholder-shown)]:cursor-default has-[+input:not(:placeholder-shown)]:text-xs has-[+input:not(:placeholder-shown)]:font-medium has-[+input:not(:placeholder-shown)]:text-foreground"
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            registerTwoFactorVerification();
+          }}
+        >
+          <CredenzaBody>
+            <div className="group relative">
+              <label
+                htmlFor="input-32"
+                className="origin-start absolute top-1/2 block -translate-y-1/2 cursor-text px-1 text-sm text-muted-foreground/70 transition-all group-focus-within:pointer-events-none group-focus-within:top-0 group-focus-within:cursor-default group-focus-within:text-xs group-focus-within:font-medium group-focus-within:text-foreground has-[+input:not(:placeholder-shown)]:pointer-events-none has-[+input:not(:placeholder-shown)]:top-0 has-[+input:not(:placeholder-shown)]:cursor-default has-[+input:not(:placeholder-shown)]:text-xs has-[+input:not(:placeholder-shown)]:font-medium has-[+input:not(:placeholder-shown)]:text-foreground"
+              >
+                <span className="inline-flex bg-background px-2">
+                  Enter Credential Name
+                </span>
+              </label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                id="credential-name"
+                placeholder=""
+              />
+            </div>
+          </CredenzaBody>
+          <CredenzaFooter className="mt-4 text-start">
+            <Button
+              disabled={!name}
+              type="submit"
+              className="group text-xs font-cal"
+              variant="default"
             >
-              <span className="inline-flex bg-background px-2">
-                Enter Credential Name
-              </span>
-            </label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              id="input-32"
-              type="email"
-              placeholder=""
-            />
-          </div>
-        </CredenzaBody>
-        <CredenzaFooter className="text-start">
-          <Button
-            onClick={registerTwoFactorVerification}
-            type="submit"
-            className="group text-xs font-cal"
-            variant="default"
-          >
-            <UserCircle
-              className="-ms-1 me-2 opacity-60"
-              size={16}
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-            Register Two Factor
-            <ArrowRight
-              className="-me-1 ms-2 opacity-60 transition-transform group-hover:translate-x-0.5"
-              size={16}
-              strokeWidth={2}
-              aria-hidden="true"
-            />
-          </Button>
-          <CredenzaClose asChild>
-            <Button type="button" className="text-xs" variant="ghost">
-              <X
+              <UserCircle
                 className="-ms-1 me-2 opacity-60"
                 size={16}
                 strokeWidth={2}
                 aria-hidden="true"
               />
-              Close
+              Register Two Factor
+              <ArrowRight
+                className="-me-1 ms-2 opacity-60 transition-transform group-hover:translate-x-0.5"
+                size={16}
+                strokeWidth={2}
+                aria-hidden="true"
+              />
             </Button>
-          </CredenzaClose>
-        </CredenzaFooter>
+            <CredenzaClose asChild>
+              <Button type="button" className="text-xs" variant="ghost">
+                <X
+                  className="-ms-1 me-2 opacity-60"
+                  size={16}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+                Close
+              </Button>
+            </CredenzaClose>
+          </CredenzaFooter>
+        </form>
       </CredenzaContent>
     </Credenza>
   );
