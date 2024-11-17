@@ -11,14 +11,15 @@ import {
   CredenzaTitle,
   CredenzaTrigger,
 } from "@/components/ui/credenza";
+import {
+  AnimatedButton,
+  useAnimatedButton,
+} from "../global/buttons/animated-button";
 
 export const ResetUser = () => {
   const router = useRouter();
-  const resetUser = api.user.reset.useMutation({
-    onSuccess: () => {
-      router.refresh();
-    },
-  });
+  const resetUser = api.user.reset.useMutation();
+  const { buttonState, changeButtonState } = useAnimatedButton();
 
   return (
     <Credenza>
@@ -37,14 +38,23 @@ export const ResetUser = () => {
           </CredenzaDescription>
         </CredenzaHeader>
         <CredenzaFooter className="text-start">
-          <Button
-            onClick={() => runAsyncAndNotify(() => resetUser.mutateAsync())}
-            type="submit"
-            className="group text-xs font-cal"
-            variant="default"
-          >
-            Reset my account
-          </Button>
+          <AnimatedButton
+            onClick={() =>
+              runAsyncAndNotify(() => resetUser.mutateAsync(), {
+                onSuccess: () => {
+                  router.refresh();
+                },
+                setButtonState: changeButtonState,
+              })
+            }
+            type="button"
+            buttonState={buttonState}
+            labels={{
+              idle: "Reset account",
+              success: "Account reset",
+              error: "Error resetting account",
+            }}
+          />
         </CredenzaFooter>
       </CredenzaContent>
     </Credenza>

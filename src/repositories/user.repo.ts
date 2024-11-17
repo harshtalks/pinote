@@ -3,13 +3,11 @@ import { User, UserInsert, users } from "@/db/schema/*";
 import { Branded } from "@/types/*";
 import { getErrorMessage, httpError } from "@/utils/*";
 import { eq } from "drizzle-orm";
-import { Effect, Redacted } from "effect";
+import { Effect } from "effect";
 import { NonEmptyArray } from "@/types/*";
-import { authenticatorRepo, sessionRepo } from "./*";
+import { authenticatorRepo, sessionRepo, userMetaRepo } from "./*";
 import { encryptString } from "@/auth/two-factor/recovery";
 import { tf } from "@/auth/*";
-import { resetTwoFactor } from "@/auth/two-factor/reset-tf";
-import { encodeBase64 } from "@oslojs/encoding";
 
 export const getUserById = (userId: Branded.UserId) =>
   Database.pipe(
@@ -157,8 +155,6 @@ export const resetUser = (userId: Branded.UserId) =>
       .generateRecoveryCode()
       .pipe(
         Effect.andThen(encryptString),
-        Effect.andThen(encodeBase64),
-        Effect.andThen(Redacted.make),
-        Effect.andThen(resetTwoFactor(userId)),
+        Effect.andThen(userMetaRepo.updateUserMetaRecoveryCode(userId)),
       ),
   ]).pipe(Effect.andThen(() => true));

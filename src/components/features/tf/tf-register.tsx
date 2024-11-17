@@ -6,7 +6,6 @@ import { Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SkipStatus } from "./skip-status";
 import { VerificationToken } from "./verification-token";
-import { ResetUser } from "./reset-user";
 import { useRouter } from "next/navigation";
 
 export const TwoFactorRegistration = () => {

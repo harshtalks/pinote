@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { getErrorMessage } from "./errors";
 import { clientRuntime } from "./layer";
 import { Result } from "./*";
+import { ButtonState } from "@/components/features/global/buttons/*";
 
 const toastVariants = {
   error: toast.error,
@@ -61,37 +62,56 @@ export const provideNotify = <A, E, R>(
 // Will only work when the handler result
 export const runAsyncAndNotify = <A, E>(
   handler: () => Promise<Result.Result<A, E>>,
-  messages?: {
-    loading?: string;
-    success?: (value: A) => string;
-    error?: string;
+  options?: {
+    messages?: {
+      loading?: string;
+      success?: (value: A) => string;
+      error?: string;
+    };
+    setButtonState?: (state: ButtonState) => void;
+    onSuccess?: (value: A) => void;
+    onError?: (error: E) => void;
+    onSettled?: () => void;
   },
 ) =>
   Effect.gen(function* () {
     const notify = yield* Notify;
+
+    // Show loading toast
     yield* notify.createToast("loading")(
-      messages?.error || "Please wait while we process your request...",
+      options?.messages?.error ||
+        "Please wait while we process your request...",
     );
+    options?.setButtonState?.("pending");
 
     const output = yield* Effect.promise(handler);
 
     if (Result.isOk(output)) {
+      options?.setButtonState?.("success");
+      options?.onSuccess?.(output.value);
       yield* notify.createToast("success")(
-        messages?.success?.(output.value) || "Request processed successfully",
+        options?.messages?.success?.(output.value) ||
+          "Request processed successfully",
         true,
       );
     } else {
+      options?.setButtonState?.("error");
+      options?.onError?.(output.error);
       yield* notify.createToast("error")(
-        messages?.error || getErrorMessage(output.error),
+        options?.messages?.error || getErrorMessage(output.error),
         true,
       );
     }
   }).pipe(
     Effect.catchAll((e) =>
       Notify.pipe(
+        Effect.tap(() => {
+          options?.setButtonState?.("error");
+          options?.onError?.(e);
+        }),
         Effect.andThen((notify) =>
           notify.createToast("error")(
-            messages?.error || getErrorMessage(e),
+            options?.messages?.error || getErrorMessage(e),
             true,
           ),
         ),
@@ -99,9 +119,13 @@ export const runAsyncAndNotify = <A, E>(
     ),
     Effect.catchAllDefect((e) =>
       Notify.pipe(
+        Effect.tap(() => {
+          options?.setButtonState?.("error");
+          options?.onError?.(e);
+        }),
         Effect.andThen((notify) =>
           notify.createToast("error")(
-            messages?.error || getErrorMessage(e),
+            options?.messages?.error || getErrorMessage(e),
             true,
           ),
         ),

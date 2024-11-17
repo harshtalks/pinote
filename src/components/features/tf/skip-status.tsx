@@ -7,11 +7,7 @@ import { useRouter } from "next/navigation";
 
 export const SkipStatus = () => {
   const router = useRouter();
-  const mutation = api.twoFactor.tfSkip.useMutation({
-    onSuccess: () => {
-      router.refresh();
-    },
-  });
+  const mutation = api.twoFactor.tfSkip.useMutation({});
 
   return (
     <Button
@@ -23,7 +19,12 @@ export const SkipStatus = () => {
               skip: true,
             }),
           {
-            success: () => "Two-factor authentication has been skipped",
+            messages: {
+              success: () => "Two-factor authentication has been skipped",
+            },
+            onSuccess: () => {
+              router.refresh();
+            },
           },
         )
       }

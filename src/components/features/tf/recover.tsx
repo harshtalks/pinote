@@ -5,21 +5,26 @@ import { useState } from "react";
 import { api } from "@/trpc/client";
 import { useRouter } from "next/navigation";
 import { runAsyncAndNotify } from "@/utils/toast";
+import { AnimatedButton, useAnimatedButton } from "../global/buttons/*";
 
 export const Recover = () => {
   const [token, setToken] = useState("");
   const router = useRouter();
-
-  const recover = api.twoFactor.recoverAccount.useMutation({
-    onSuccess: () => router.refresh(),
-  });
+  const recover = api.twoFactor.recoverAccount.useMutation();
+  const { buttonState, changeButtonState } = useAnimatedButton();
 
   return (
     <div className="space-y-4">
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          runAsyncAndNotify(() => recover.mutateAsync({ recoveryCode: token }));
+          runAsyncAndNotify(
+            () => recover.mutateAsync({ recoveryCode: token }),
+            {
+              onSuccess: () => router.refresh(),
+              setButtonState: changeButtonState,
+            },
+          );
         }}
         className="space-y-4"
       >
@@ -39,15 +44,18 @@ export const Recover = () => {
             onChange={(e) => setToken(e.target.value)}
           />
         </div>
-        <Button
+        <AnimatedButton
           size="sm"
+          buttonState={buttonState}
           type="submit"
           disabled={!token}
-          variant="default"
-          className="w-full tracking-normal font-cal group"
-        >
-          Recover Account
-        </Button>
+          className="tracking-normal w-full font-cal"
+          labels={{
+            idle: "Recover Account",
+            error: "Failed to recover",
+            success: "Account recovered",
+          }}
+        />
       </form>
       <div>
         <p className="text-muted-foreground leading-relaxed text-xs">
