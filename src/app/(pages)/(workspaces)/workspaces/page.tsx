@@ -1,6 +1,7 @@
 import { AuthInterceptor } from "@/auth/interceptor";
 import WorkspacesPageRoute from "./route.info";
 import { headers } from "next/headers";
+import { Workspace } from "@/components/features/workspaces/workspace";
 
 const WorkspacesPage = async () => {
   await new AuthInterceptor()
@@ -10,7 +11,11 @@ const WorkspacesPage = async () => {
     .withRedirect()
     .execute();
 
-  return <div>This is the Workspaces Page</div>;
+  return (
+    <main>
+      <Workspace />
+    </main>
+  );
 };
 
 export default WorkspacesPage;

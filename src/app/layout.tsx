@@ -30,17 +30,10 @@ export default function RootLayout({
       <body
         className={`${calSans.variable} ${inter.variable} font-sans antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <TRPCReactProvider>
-            <main className="h-full">{children}</main>
-            <Toaster />
-          </TRPCReactProvider>
-        </ThemeProvider>
+        <TRPCReactProvider>
+          <main className="h-full">{children}</main>
+          <Toaster />
+        </TRPCReactProvider>
       </body>
     </html>
   );
