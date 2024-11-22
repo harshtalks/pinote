@@ -1,8 +1,7 @@
-// Result type for the trpc responses
-
 import { Effect } from "effect";
 import { getErrorMessage, UncaughtError } from "./errors";
 
+// Result type for the trpc responses
 export type Ok<A> = {
   __tag__: "Ok";
   value: A;
@@ -34,6 +33,20 @@ export const succeedWithOk = <A>(value: A): Effect.Effect<Ok<A>> =>
 
 export const getOk = <A>(result: Ok<A>) => Effect.succeed(result.value);
 export const getErr = <E>(result: Err<E>) => Effect.succeed(result.error);
+
+export const mapOk = <A, E, B>(
+  result: Result<A, E>,
+  fn: (value: A) => B,
+): Result<B, E> => (isOk(result) ? ok(fn(result.value)) : result);
+export const mapErr = <A, E, F>(
+  result: Result<A, E>,
+  fn: (error: E) => F,
+): Result<A, F> => (isErr(result) ? err(fn(result.error)) : result);
+export const map = <A, E, B, F>(
+  result: Result<A, E>,
+  { onOk, onErr }: { onOk: (value: A) => B; onErr: (error: E) => F },
+): Result<B, F> =>
+  isOk(result) ? ok(onOk(result.value)) : err(onErr(result.error));
 
 export const isOk = <A>(result: Ok<A> | Err<unknown>): result is Ok<A> =>
   result.__tag__ === "Ok";
