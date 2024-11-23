@@ -1,5 +1,6 @@
 // Ref to hold the challenge through the webauthn process
 
+import { provideDefault } from "@/utils/*";
 import { encodeHexLowerCase } from "@oslojs/encoding";
 import { Effect, SynchronizedRef } from "effect";
 
@@ -42,7 +43,4 @@ export class TfChallenges extends Effect.Service<TfChallenges>()(
   }
 }
 
-export const provideChallengeRef = <A, E, R>(
-  self: Effect.Effect<A, E, R | TfChallenges>,
-): Effect.Effect<A, E, Exclude<R, TfChallenges>> =>
-  Effect.provide(self, TfChallenges.Default);
+export const provideChallengeRef = provideDefault(TfChallenges.Default);

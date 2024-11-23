@@ -4,7 +4,7 @@ import { prefixedId } from "../schema.helper";
 import { createdAtSchema, updatedAtSchema } from "../schema.common";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { users, workspaces } from "../*";
-import { permissions } from "../schema.enums";
+import { permissions, roles } from "../schema.enums";
 
 export const members = sqliteTable(
   "members",
@@ -25,6 +25,11 @@ export const members = sqliteTable(
     permission: t
       .text("permission", {
         enum: permissions,
+      })
+      .notNull(),
+    role: t
+      .text("role", {
+        enum: roles,
       })
       .notNull(),
   },
