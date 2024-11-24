@@ -6,6 +6,7 @@ import {
   HttpClientRequest,
   HttpClientResponse,
 } from "@effect/platform";
+import { provideDefault } from "@/utils/service";
 
 export const GithubUserRouteInfo = createRoute({
   name: "githubUser",
@@ -51,7 +52,4 @@ export const getCurrentUserEmails = (token: Redacted.Redacted<string>) =>
     ),
   );
 
-export const provideFetchLayer = <A, E, R>(
-  self: Effect.Effect<A, E, R | HttpClient.HttpClient>,
-): Effect.Effect<A, E, Exclude<R, HttpClient.HttpClient>> =>
-  Effect.provide(self, FetchHttpClient.layer);
+export const provideFetchLayer = provideDefault(FetchHttpClient.layer);

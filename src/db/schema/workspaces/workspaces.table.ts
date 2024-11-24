@@ -15,6 +15,12 @@ export const workspaces = sqliteTable("workspaces", {
     .text()
     .notNull()
     .references(() => users.id, { onDelete: "no action" }),
+  isPrivate: t
+    .int({
+      mode: "boolean",
+    })
+    .notNull()
+    .default(false),
 });
 
 export type Workspace = InferSelectModel<typeof workspaces>;

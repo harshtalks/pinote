@@ -85,16 +85,12 @@
       "indexes": {
         "users_username_unique": {
           "name": "users_username_unique",
-          "columns": [
-            "username"
-          ],
+          "columns": ["username"],
           "isUnique": true
         },
         "users_githubId_unique": {
           "name": "users_githubId_unique",
-          "columns": [
-            "githubId"
-          ],
+          "columns": ["githubId"],
           "isUnique": true
         }
       },
@@ -176,9 +172,7 @@
       "indexes": {
         "sessionIndex": {
           "name": "sessionIndex",
-          "columns": [
-            "sessionId"
-          ],
+          "columns": ["sessionId"],
           "isUnique": false
         }
       },
@@ -187,12 +181,8 @@
           "name": "sessions_userId_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -262,12 +252,8 @@
           "name": "authenticators_userId_users_id_fk",
           "tableFrom": "authenticators",
           "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -323,12 +309,8 @@
           "name": "usersMetadata_userId_users_id_fk",
           "tableFrom": "usersMetadata",
           "tableTo": "users",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }

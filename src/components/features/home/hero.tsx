@@ -1,14 +1,10 @@
-import { api } from "@/trpc/server";
 import { RoundedHoverBtn } from "../global/buttons/rouded-hover";
 import { ClerkBadge } from "./clerkBadge";
 import SigninPageRoute from "@/app/(pages)/sign-in/route.info";
 
-export const Hero = async () => {
-  const x = await api.health();
-
+export const Hero = () => {
   return (
     <section className="p-24 pt-[200px]">
-      {JSON.stringify(x)}
       <div className="max-w-xl">
         <p className="text-muted-foreground opacity-80 text-xs tracking-[0.3rem] uppercase"></p>
         <ClerkBadge>Open Source Substack Alternative</ClerkBadge>
