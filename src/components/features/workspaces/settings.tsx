@@ -69,7 +69,7 @@ export function Settings() {
         {data.map((item, idx) => (
           <DockItem
             key={idx}
-            className="aspect-square rounded-full bg-gray-200 dark:bg-neutral-800"
+            className="aspect-square rounded-full bg-zinc-100"
           >
             <DockLabel>{item.title}</DockLabel>
             <DockIcon>{item.icon}</DockIcon>
