@@ -11,7 +11,6 @@ const Playground = () => {
       <BubbleMenuWrapper />
       <SlashCmd.Root editor={editor}>
         <SlashCmd.Cmd className="z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-muted bg-background p-2 shadow-[rgba(100,_100,_111,_0.2)_0px_7px_29px_0px] transition-all">
-          <SlashCmd.Empty>No results found</SlashCmd.Empty>
           <SlashCmd.List>
             {slashSuggestions.map((item) => (
               <SlashCmd.Item
@@ -33,6 +32,9 @@ const Playground = () => {
                 </div>
               </SlashCmd.Item>
             ))}
+            <SlashCmd.Empty className="text-xs px-4">
+              No results found
+            </SlashCmd.Empty>
           </SlashCmd.List>
         </SlashCmd.Cmd>
       </SlashCmd.Root>

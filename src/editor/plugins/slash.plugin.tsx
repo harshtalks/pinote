@@ -23,7 +23,7 @@ export const slashSuggestions = createSuggestionsItems<{
     title: "Text",
     description: "Just start typing with plain text.",
     searchTerms: ["p", "paragraph"],
-    icon: <Text size={18} />,
+    icon: <Text size={16} />,
     command: ({ editor, range }) => {
       editor
         .chain()
@@ -37,7 +37,7 @@ export const slashSuggestions = createSuggestionsItems<{
     title: "Heading 1",
     description: "Big section heading.",
     searchTerms: ["title", "big", "large"],
-    icon: <Heading1 size={18} />,
+    icon: <Heading1 size={16} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setHeading({ level: 1 }).run();
     },
@@ -46,7 +46,7 @@ export const slashSuggestions = createSuggestionsItems<{
     title: "Heading 2",
     description: "Medium section heading.",
     searchTerms: ["subtitle", "medium"],
-    icon: <Heading2 size={18} />,
+    icon: <Heading2 size={16} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setHeading({ level: 2 }).run();
     },
@@ -55,7 +55,7 @@ export const slashSuggestions = createSuggestionsItems<{
     title: "Heading 3",
     description: "Small section heading.",
     searchTerms: ["subtitle", "small"],
-    icon: <Heading3 size={18} />,
+    icon: <Heading3 size={16} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setHeading({ level: 3 }).run();
     },
@@ -64,7 +64,7 @@ export const slashSuggestions = createSuggestionsItems<{
     title: "Heading 4",
     description: "Small section heading.",
     searchTerms: ["subtitle", "smaller"],
-    icon: <Heading4 size={18} />,
+    icon: <Heading4 size={16} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setHeading({ level: 4 }).run();
     },
@@ -73,7 +73,7 @@ export const slashSuggestions = createSuggestionsItems<{
     title: "Heading 5",
     description: "Small section heading.",
     searchTerms: ["subtitle", "small"],
-    icon: <Heading5 size={18} />,
+    icon: <Heading5 size={16} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setHeading({ level: 5 }).run();
     },
@@ -82,7 +82,7 @@ export const slashSuggestions = createSuggestionsItems<{
     title: "Heading 6",
     description: "Small section heading.",
     searchTerms: ["subtitle", "small"],
-    icon: <Heading6 size={18} />,
+    icon: <Heading6 size={16} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).setHeading({ level: 6 }).run();
     },
@@ -91,7 +91,7 @@ export const slashSuggestions = createSuggestionsItems<{
     title: "Bullet List",
     description: "Create a simple bullet list.",
     searchTerms: ["unordered", "point"],
-    icon: <List size={18} />,
+    icon: <List size={16} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleBulletList().run();
     },
@@ -100,7 +100,7 @@ export const slashSuggestions = createSuggestionsItems<{
     title: "Ordered List",
     description: "Create a simple ordered list.",
     searchTerms: ["ordered", "point", "numbers"],
-    icon: <ListOrdered size={18} />,
+    icon: <ListOrdered size={16} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleOrderedList().run();
     },
