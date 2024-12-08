@@ -1,7 +1,7 @@
 // Creating router for Two Factor Auth Calls
 
 import { authenticatedProcedure, createTRPCRouter } from "@/trpc/trpc";
-import { asEither, failwithTrpcErr, inputAsSchema } from "@/trpc/utils.trpc";
+import { failwithTrpcErr, inputAsSchema } from "@/trpc/utils.trpc";
 import { decodeBase64, encodeBase64 } from "@oslojs/encoding";
 import { TRPCError } from "@trpc/server";
 import { Effect, Redacted, Schema } from "effect";
