@@ -3,7 +3,6 @@ import { api } from "@/trpc/server";
 import { Folder, GridIcon, PanelLeft, PlusIcon, Settings } from "lucide-react";
 import { ReactNode } from "react";
 import { Input } from "@/components/ui/input";
-import { Editor } from "@/components/features/workspaces/editor";
 
 const Layout = async ({ children }: { children: ReactNode }) => {
   const me = await api.user.me();
@@ -68,7 +67,7 @@ const Layout = async ({ children }: { children: ReactNode }) => {
           <Settings size={16} />
         </div>
         <div className="bg-background flex-1 pt-24 border rounded-xl">
-          <Editor />
+          {children}
         </div>
       </div>
     </main>

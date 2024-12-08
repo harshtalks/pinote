@@ -1,9 +1,7 @@
+import { Editor } from "@/components/features/workspaces/editor";
+
 const WorkspacePage = () => {
-  return (
-    <div>
-      <h1>Workspace Page</h1>
-    </div>
-  );
+  return <Editor />;
 };
 
 export default WorkspacePage;
