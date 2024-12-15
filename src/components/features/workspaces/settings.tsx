@@ -64,7 +64,7 @@ const data = [
 
 export function Settings() {
   return (
-    <div className="absolute bottom-2 left-1/2 max-w-full -translate-x-1/2">
+    <div className="fixed bottom-2 left-1/2 max-w-full -translate-x-1/2">
       <Dock className="items-end pb-3">
         {data.map((item, idx) => (
           <DockItem

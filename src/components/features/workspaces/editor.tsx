@@ -5,7 +5,7 @@ import Notebook from "../notebooks/notebook";
 
 export const Editor = () => {
   return (
-    <section className="flex flex-col">
+    <section className="flex overflow-y-auto flex-col">
       <div className="w-[700px] flex-col gap-12 mx-auto flex text-neutral-700">
         <div className="space-y-8">
           <TitleInput />

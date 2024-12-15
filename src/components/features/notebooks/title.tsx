@@ -44,7 +44,7 @@ export function TitleInput({
       ref={textareaRef}
       onChange={handleInput}
       rows={defaultRows}
-      onKeyPress={onKeyPress}
+      onKeyDown={onKeyPress}
       {...props}
       className={cn(
         "border-0 p-0 shadow-none placeholder:text-neutral-400 focus-visible:ring-0 font-semibold placeholder:font-semibold placeholder:text-3xl !text-3xl min-h-[none] resize-none",

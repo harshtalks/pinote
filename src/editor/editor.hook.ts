@@ -92,7 +92,7 @@ const useNotebookEditor = () => {
         },
       },
       attributes: {
-        class: "prose prose-sm focus:outline-none",
+        class: "prose prose-sm leading-tight w-full focus:outline-none",
       },
     },
   });
