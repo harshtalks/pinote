@@ -6,3 +6,4 @@ export * as httpError from "./http-err";
 export * from "./toast";
 export * from "./service";
 export * from "./icons";
+export * from "./motion-variants";
