@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/client";
-import { runAsyncAndNotify } from "@/utils/toast";
+import { runStatefulAsyncAndNotify } from "@/utils/toast";
 import { useRouter } from "next/navigation";
 import {
   Credenza,
@@ -40,12 +40,12 @@ export const ResetUser = () => {
         <CredenzaFooter className="text-start">
           <AnimatedButton
             onClick={() =>
-              runAsyncAndNotify(() => resetUser.mutateAsync(), {
-                onSuccess: () => {
-                  router.refresh();
+              runStatefulAsyncAndNotify(changeButtonState)(
+                () => resetUser.mutateAsync(),
+                {
+                  onSuccess: () => router.refresh(),
                 },
-                setButtonState: changeButtonState,
-              })
+              )
             }
             type="button"
             buttonState={buttonState}

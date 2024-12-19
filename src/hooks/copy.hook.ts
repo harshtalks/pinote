@@ -2,7 +2,6 @@
 
 import { clientRuntime, Notify, provideNotify } from "@/utils/*";
 import { Effect } from "effect";
-import { isCons } from "effect/List";
 import { useEffect, useState } from "react";
 
 export const useIsCopied = (duration = 2000) => {

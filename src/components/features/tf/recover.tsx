@@ -1,10 +1,9 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import { ResetUser } from "./reset-user";
 import { useState } from "react";
 import { api } from "@/trpc/client";
 import { useRouter } from "next/navigation";
-import { runAsyncAndNotify } from "@/utils/toast";
+import { runAsyncAndNotify, runStatefulAsyncAndNotify } from "@/utils/toast";
 import { AnimatedButton, useAnimatedButton } from "../global/buttons/*";
 
 export const Recover = () => {
@@ -18,11 +17,10 @@ export const Recover = () => {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          runAsyncAndNotify(
+          runStatefulAsyncAndNotify(changeButtonState)(
             () => recover.mutateAsync({ recoveryCode: token }),
             {
               onSuccess: () => router.refresh(),
-              setButtonState: changeButtonState,
             },
           );
         }}

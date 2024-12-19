@@ -59,7 +59,7 @@ export const provideNotify = <A, E, R>(
 ): Effect.Effect<A, E, Exclude<R, Notify>> =>
   self.pipe(Effect.provide(Notify.Default));
 
-// Will only work when the handler result
+// Will only work when the handler result ->
 export const runAsyncAndNotify = <A, E>(
   handler: () => Promise<Result.Result<A, E>>,
   options?: {
@@ -68,10 +68,12 @@ export const runAsyncAndNotify = <A, E>(
       success?: (value: A) => string;
       error?: string;
     };
-    setButtonState?: (state: ButtonState) => void;
+    // Callbacks
     onSuccess?: (value: A) => void;
     onError?: (error: E) => void;
     onSettled?: () => void;
+    onStart?: () => void;
+    onFailure?: (e: unknown) => void;
   },
 ) =>
   Effect.gen(function* () {
@@ -79,15 +81,18 @@ export const runAsyncAndNotify = <A, E>(
 
     // Show loading toast
     yield* notify.createToast("loading")(
-      options?.messages?.error ||
+      options?.messages?.loading ||
         "Please wait while we process your request...",
     );
-    options?.setButtonState?.("pending");
 
+    // Callback
+    options?.onStart?.();
+
+    // Getting the result
     const output = yield* Effect.promise(handler);
 
+    // Handling the result
     if (Result.isOk(output)) {
-      options?.setButtonState?.("success");
       options?.onSuccess?.(output.value);
       yield* notify.createToast("success")(
         options?.messages?.success?.(output.value) ||
@@ -95,7 +100,6 @@ export const runAsyncAndNotify = <A, E>(
         true,
       );
     } else {
-      options?.setButtonState?.("error");
       options?.onError?.(output.error);
       yield* notify.createToast("error")(
         options?.messages?.error || getErrorMessage(output.error),
@@ -106,8 +110,7 @@ export const runAsyncAndNotify = <A, E>(
     Effect.catchAll((e) =>
       Notify.pipe(
         Effect.tap(() => {
-          options?.setButtonState?.("error");
-          options?.onError?.(e);
+          options?.onFailure?.(e);
         }),
         Effect.andThen((notify) =>
           notify.createToast("error")(
@@ -120,8 +123,7 @@ export const runAsyncAndNotify = <A, E>(
     Effect.catchAllDefect((e) =>
       Notify.pipe(
         Effect.tap(() => {
-          options?.setButtonState?.("error");
-          options?.onError?.(e);
+          options?.onFailure?.(e);
         }),
         Effect.andThen((notify) =>
           notify.createToast("error")(
@@ -131,6 +133,34 @@ export const runAsyncAndNotify = <A, E>(
         ),
       ),
     ),
+    Effect.ensuring(Effect.succeed(() => options?.onSettled?.())),
     provideNotify,
     clientRuntime.runPromise,
   );
+
+export const runStatefulAsyncAndNotify =
+  (setButtonState: (state: ButtonState) => void) =>
+  <A, E>(...args: Parameters<typeof runAsyncAndNotify<A, E>>) =>
+    runAsyncAndNotify(args[0], {
+      ...args[1],
+      onError: (error) => {
+        setButtonState("error");
+        args[1]?.onError?.(error);
+      },
+      onSuccess: (value) => {
+        setButtonState("success");
+        args[1]?.onSuccess?.(value);
+      },
+      onStart: () => {
+        setButtonState("pending");
+        args[1]?.onStart?.();
+      },
+      onSettled: () => {
+        setButtonState("idle");
+        args[1]?.onSettled?.();
+      },
+      onFailure: (e) => {
+        setButtonState("error");
+        args[1]?.onFailure?.(e);
+      },
+    });

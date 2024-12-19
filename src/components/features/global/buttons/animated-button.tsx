@@ -62,7 +62,7 @@ export const AnimatedButton = ({
           thisButtonvariants[buttonState],
           "disabled:opacity-80 disabled:pointer-events-none",
           "data-[state=idle]:pointer-events-auto pointer-events-none",
-          "min-w-[200px] min-h-10 w-full relative overflow-hidden",
+          "min-w-[200px] !px-4 min-h-10 w-full relative overflow-hidden",
           className,
         )}
         {...props}
@@ -73,7 +73,9 @@ export const AnimatedButton = ({
               default: { ease: "easeInOut" },
               duration: 0.25,
             }}
-            className={cn("absolute inset-0 flex items-center justify-center")}
+            className={cn(
+              "absolute inset-0 px-4 flex items-center justify-center",
+            )}
             initial={{
               y: "100%",
             }}
@@ -108,7 +110,7 @@ export const useAnimatedButton = (props?: {
   // when the state is pending or success, we want to reset it to idle after a while
   useEffect(() => {
     if (!props?.disabledAutoReset) {
-      if (state === "pending" || state === "error") {
+      if (state === "success" || state === "error") {
         const timeout = setTimeout(() => {
           setState("idle");
         }, resetDuration);

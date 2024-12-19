@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { Match } from "effect";
-import { AddNewWorkspaceForm } from "./add-new-workspacce-form";
+import { AddNewWorkspaceForm } from "./add-new-workspace-form";
 
 export const AddNewWorkspace = () => {
   const [showForm, setShowForm] = useState(false);

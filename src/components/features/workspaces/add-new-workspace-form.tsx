@@ -10,18 +10,35 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { addnewWorkspaceSchema, AddNewWorkspaceSchema } from "@/db/schema/*";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import {
+  AnimatedButton,
+  useAnimatedButton,
+} from "../global/buttons/animated-button";
+import { z } from "zod";
+
+const addNewWorkspaceFormSchema = z.object({
+  name: z.string().min(1, {
+    message: "Workspace name is required",
+  }),
+  description: z.string().min(1, {
+    message: "Workspace description is required",
+  }),
+  isPrivate: z.union([z.literal("true"), z.literal("false")]),
+});
+
+type AddNewWorkspaceFormSchema = z.infer<typeof addNewWorkspaceFormSchema>;
 
 export const AddNewWorkspaceForm = ({
   onCancel,
 }: {
   onCancel?: () => void;
 }) => {
-  const form = useForm<AddNewWorkspaceSchema>({
-    resolver: zodResolver(addnewWorkspaceSchema),
+  const form = useForm<AddNewWorkspaceFormSchema>({
+    resolver: zodResolver(addNewWorkspaceFormSchema),
+    shouldUseNativeValidation: true,
     defaultValues: {
       name: "",
       description: "",
@@ -29,11 +46,18 @@ export const AddNewWorkspaceForm = ({
     },
   });
 
+  const { buttonState, changeButtonState } = useAnimatedButton({
+    initial: "idle",
+  });
+
+  const submitForm = async (data: AddNewWorkspaceFormSchema) => {};
+
   return (
     <Form {...form}>
+      {JSON.stringify(form.formState.errors)}
       <form
         className="space-y-4 max-w-xl"
-        onSubmit={form.handleSubmit(console.log)}
+        onSubmit={form.handleSubmit((data) => submitForm(data))}
       >
         <FormField
           control={form.control}
@@ -129,9 +153,18 @@ export const AddNewWorkspaceForm = ({
           )}
         />
         <div className="flex items-center gap-2 justify-end">
-          <Button type="submit">Create Workspace</Button>
+          <AnimatedButton
+            buttonState={buttonState}
+            type="submit"
+            className="min-w-[220px]"
+            labels={{
+              idle: "Create new workspace",
+              success: "Created Successfully",
+              error: "Oops! Something went wrong",
+            }}
+          />
           <Button
-            type="button"
+            type="submit"
             variant="ghost"
             onClick={() => {
               form.reset();

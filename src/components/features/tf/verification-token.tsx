@@ -5,7 +5,6 @@ import { useIsCopied } from "@/hooks/*";
 import { cn } from "@/lib/utils";
 import { Redacted } from "effect";
 import { Check, Copy } from "lucide-react";
-import { useEffect, useState } from "react";
 
 export const VerificationToken = ({
   token,
