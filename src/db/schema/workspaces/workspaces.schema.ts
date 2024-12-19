@@ -3,6 +3,9 @@ import { workspaces } from "./workspaces.table";
 import * as z from "zod";
 
 export const addnewWorkspaceSchema = createInsertSchema(workspaces);
+export const addNewWorkspaceSchemaWithNoId = addnewWorkspaceSchema.omit({
+  creatorId: true,
+});
 
 export const selectWorkspaceSchema = createSelectSchema(workspaces);
 

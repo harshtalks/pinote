@@ -7,6 +7,7 @@ import {
 } from "../trpc";
 import { tfRouter } from "./tf/*";
 import { userRouter } from "./user/*";
+import { workspaceRouter } from "./workspace/*";
 
 export const appRouter = createTRPCRouter({
   health: authenticatedProcedure.query(() => {
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   }),
   twoFactor: tfRouter,
   user: userRouter,
+  workspace: workspaceRouter,
 });
 
 /**

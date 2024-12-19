@@ -7,11 +7,7 @@ const NodeSdkLive = NodeSdk.layer(() => ({
   resource: {
     serviceName: "pinote-trpc",
   },
-  spanProcessor: new BatchSpanProcessor(
-    new OTLPTraceExporter({
-      url: "http://localhost:4318/v1/traces",
-    }),
-  ),
+  spanProcessor: new BatchSpanProcessor(new OTLPTraceExporter()),
 }));
 
 export const trpcRunTime = ManagedRuntime.make(NodeSdkLive);

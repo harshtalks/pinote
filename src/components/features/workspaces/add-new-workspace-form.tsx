@@ -18,6 +18,8 @@ import {
   useAnimatedButton,
 } from "../global/buttons/animated-button";
 import { z } from "zod";
+import { api } from "@/trpc/client";
+import { runStatefulAsyncAndNotify } from "@/utils/toast";
 
 const addNewWorkspaceFormSchema = z.object({
   name: z.string().min(1, {
@@ -46,15 +48,24 @@ export const AddNewWorkspaceForm = ({
     },
   });
 
+  const newWorkspaceMutation = api.workspace.newWorkspace.useMutation();
+
   const { buttonState, changeButtonState } = useAnimatedButton({
     initial: "idle",
   });
 
-  const submitForm = async (data: AddNewWorkspaceFormSchema) => {};
+  const submitForm = async (data: AddNewWorkspaceFormSchema) => {
+    runStatefulAsyncAndNotify(changeButtonState)(() =>
+      newWorkspaceMutation.mutateAsync({
+        name: data.name,
+        description: data.description,
+        isPrivate: data.isPrivate === "true",
+      }),
+    );
+  };
 
   return (
     <Form {...form}>
-      {JSON.stringify(form.formState.errors)}
       <form
         className="space-y-4 max-w-xl"
         onSubmit={form.handleSubmit((data) => submitForm(data))}
