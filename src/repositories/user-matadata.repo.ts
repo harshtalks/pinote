@@ -1,13 +1,14 @@
 import { tf } from "@/auth/*";
 import { decryptToString, encryptString } from "@/auth/two-factor/recovery";
 import Database from "@/db/*";
-import { UserMetadata, userMetadata, UserMetadataInsert } from "@/db/schema/*";
-import { Branded, NonEmptyArray } from "@/types/*";
-import { getErrorMessage, httpError } from "@/utils/*";
+import { userMetadata, UserMetadataInsert } from "@/db/schema/*";
+import { Branded } from "@/types/*";
+import { httpError } from "@/utils/*";
 import { eq } from "drizzle-orm";
-import { Effect } from "effect";
+import { Array, Effect } from "effect";
 import { encodeBase64, decodeBase64 } from "@oslojs/encoding";
 import { authenticatorRepo } from "./*";
+import { dbError, dbTry } from "./common";
 
 // This will create the user metadata
 export const createUserMeta = (
@@ -26,11 +27,10 @@ export const createUserMeta = (
             recoveryCode: encodeBase64(token),
           })
           .returning(),
-      catch: (error) =>
-        new httpError.InternalServerError({ message: getErrorMessage(error) }),
+      catch: dbError,
     }),
     Effect.filterOrFail(
-      (result): result is NonEmptyArray<UserMetadata> => result.length > 0,
+      Array.isNonEmptyArray,
       () =>
         new httpError.NotFoundError({
           message: "No User metadata was returned by the db",
@@ -42,14 +42,11 @@ export const createUserMeta = (
 // This will get the user metadata by the user id
 export const getUserMetaRecoveryCode = (userId: Branded.UserId) =>
   Database.pipe(
-    Effect.tryMapPromise({
-      try: (db) =>
-        db.select().from(userMetadata).where(eq(userMetadata.userId, userId)),
-      catch: (error) =>
-        new httpError.InternalServerError({ message: getErrorMessage(error) }),
-    }),
+    dbTry((db) =>
+      db.select().from(userMetadata).where(eq(userMetadata.userId, userId)),
+    ),
     Effect.filterOrFail(
-      (result): result is NonEmptyArray<UserMetadata> => result.length > 0,
+      Array.isNonEmptyArray,
       () =>
         new httpError.NotFoundError({
           message: "No User metadata was returned by the db",
@@ -64,22 +61,17 @@ export const getUserMetaRecoveryCode = (userId: Branded.UserId) =>
 export const updateUserMetaRecoveryCode =
   (userId: Branded.UserId) => (newRecoveryCode: Uint8Array) =>
     Database.pipe(
-      Effect.tryMapPromise({
-        catch: (error) =>
-          new httpError.InternalServerError({
-            message: getErrorMessage(error),
-          }),
-        try: (db) =>
-          db
-            .update(userMetadata)
-            .set({
-              recoveryCode: encodeBase64(newRecoveryCode),
-            })
-            .where(eq(userMetadata.userId, userId))
-            .returning(),
-      }),
+      dbTry((db) =>
+        db
+          .update(userMetadata)
+          .set({
+            recoveryCode: encodeBase64(newRecoveryCode),
+          })
+          .where(eq(userMetadata.userId, userId))
+          .returning(),
+      ),
       Effect.filterOrFail(
-        (result): result is NonEmptyArray<UserMetadata> => result.length > 0,
+        Array.isNonEmptyArray,
         () =>
           new httpError.NotFoundError({ message: "No user metadata found" }),
       ),
