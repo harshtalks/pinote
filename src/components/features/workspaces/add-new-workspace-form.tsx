@@ -20,6 +20,7 @@ import {
 import { z } from "zod";
 import { api } from "@/trpc/client";
 import { runStatefulAsyncAndNotify } from "@/utils/toast";
+import { useRouter } from "next/navigation";
 
 const addNewWorkspaceFormSchema = z.object({
   name: z.string().min(1, {
@@ -38,6 +39,8 @@ export const AddNewWorkspaceForm = ({
 }: {
   onCancel?: () => void;
 }) => {
+  const router = useRouter();
+
   const form = useForm<AddNewWorkspaceFormSchema>({
     resolver: zodResolver(addNewWorkspaceFormSchema),
     shouldUseNativeValidation: true,
@@ -55,12 +58,18 @@ export const AddNewWorkspaceForm = ({
   });
 
   const submitForm = async (data: AddNewWorkspaceFormSchema) => {
-    runStatefulAsyncAndNotify(changeButtonState)(() =>
-      newWorkspaceMutation.mutateAsync({
-        name: data.name,
-        description: data.description,
-        isPrivate: data.isPrivate === "true",
-      }),
+    runStatefulAsyncAndNotify(changeButtonState)(
+      () =>
+        newWorkspaceMutation.mutateAsync({
+          name: data.name,
+          description: data.description,
+          isPrivate: data.isPrivate === "true",
+        }),
+      {
+        onSuccess: () => {
+          window.location.reload();
+        },
+      },
     );
   };
 

@@ -53,15 +53,17 @@ export const isOk = <A>(result: Ok<A> | Err<unknown>): result is Ok<A> =>
 export const isErr = <E>(result: Ok<unknown> | Err<E>): result is Err<E> =>
   result.__tag__ === "Err";
 
-export const match = <A, E, OkResult, ErrResult>({
-  onOk,
-  onErr,
-}: {
-  onOk: (value: A) => OkResult;
-  onErr: (error: E) => ErrResult;
-}) => {
-  return (result: Ok<A> | Err<E>): OkResult | ErrResult =>
-    isOk(result) ? onOk(result.value) : onErr(result.error);
+export const match = <A, E, OkResult, ErrResult>(
+  result: Result<A, E>,
+  {
+    onOk,
+    onErr,
+  }: {
+    onOk: (value: A) => OkResult;
+    onErr: (error: E) => ErrResult;
+  },
+): OkResult | ErrResult => {
+  return isOk(result) ? onOk(result.value) : onErr(result.error);
 };
 
 export type Result<A, E> = Ok<A> | Err<E>;

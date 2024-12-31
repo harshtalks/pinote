@@ -13,3 +13,6 @@ export const AuthentictorId = Brand.nominal<AuthentictorId>();
 
 export type GithubId = string & Brand.Brand<"GithubId">;
 export const GithubId = Brand.nominal<GithubId>();
+
+export type WorkspaceId = string & Brand.Brand<"WorkspaceId">;
+export const WorkspaceId = Brand.nominal<WorkspaceId>();
