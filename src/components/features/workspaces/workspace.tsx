@@ -5,8 +5,8 @@ import { Result } from "@/utils/*";
 import { Array, Match, pipe } from "effect";
 import { ArrowRight, CircleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DateTime } from "luxon";
 import { RelativeDate } from "../global/relative-date";
+import WorkspaceIdPageRoute from "@/app/(pages)/(workspaces)/workspaces/[workspaceId]/route.info";
 
 export const Workspace = async () => {
   const user = await api.user.me();
@@ -14,7 +14,7 @@ export const Workspace = async () => {
   console.log(workspaces);
 
   return (
-    <div className="max-w-3xl space-y-12 py-24 mx-auto">
+    <div className="max-w-xl space-y-12 py-24 mx-auto">
       <div className="space-y-4">
         <Avatar className="size-24">
           <AvatarFallback>{user.name[0]}</AvatarFallback>
@@ -87,64 +87,68 @@ export const Workspace = async () => {
             )),
           ),
         onOk: (workspaces) => (
-          <div className="space-y-8 max-w-xl">
+          <div className="space-y-8 mx-auto max-w-xl">
             <AddNewWorkspace />
             <div className="space-y-2">
-              {Array.map(workspaces, (each) => (
-                <div
-                  key={each.id}
-                  className="relative flex items-start gap-2 rounded-lg border border-input p-4 shadow-sm shadow-black/5 hover:border-ring"
-                >
-                  <div className="grid grow gap-2">
-                    <div className="flex items-center justify-between">
-                      <p>
-                        {each.name}{" "}
-                        <span className="text-xs font-normal leading-[inherit] text-muted-foreground">
-                          {each.isPrivate ? "Private" : "Public"}
-                        </span>
-                      </p>
-                      <div className="text-xs text-muted-foreground">
-                        <RelativeDate date={each.createdAt} />
+              {pipe(
+                workspaces,
+                Array.map((each) => (
+                  <WorkspaceIdPageRoute.Link
+                    params={{ workspaceId: each.id }}
+                    key={each.id}
+                    className="relative flex items-start focus:outline-none transition-all focus-visible:ring-1 focus-visible:ring-offset-2 focus-visible:ring-foreground gap-2 rounded-lg w-full border border-input p-4 hover:border-ring"
+                  >
+                    <div className="grid grow gap-2">
+                      <div className="flex items-center justify-between">
+                        <p>
+                          {each.name}{" "}
+                          <span className="text-xs font-normal leading-[inherit] text-muted-foreground">
+                            ({each.isPrivate ? "Private" : "Public"})
+                          </span>
+                        </p>
+                        <div className="text-xs text-muted-foreground">
+                          <RelativeDate date={each.createdAt} />
+                        </div>
                       </div>
-                    </div>
-                    <p
-                      id="radio-08-r2-description"
-                      className="text-xs text-muted-foreground"
-                    >
-                      {each.description}
-                    </p>
-                    <button className="flex items-center hover:shadow-sm hover:border-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground focus-visible:ring-offset-2 transition-all w-fit rounded-full border border-border bg-background p-1">
-                      <div className="flex -space-x-3">
+                      <p
+                        id="radio-08-r2-description"
+                        className="text-xs text-start text-muted-foreground"
+                      >
+                        {each.description}
+                      </p>
+                      <button className="flex items-center hover:shadow-sm hover:border-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground focus-visible:ring-offset-2 transition-all w-fit rounded-full border border-border bg-background p-1">
+                        <div className="flex -space-x-3">
+                          {pipe(
+                            each.members,
+                            Array.take(3),
+                            Array.map((each) => (
+                              <Avatar className="size-4" key={each.id}>
+                                <AvatarFallback></AvatarFallback>
+                                {each.user.avatar && (
+                                  <AvatarImage
+                                    src={each.user.avatar}
+                                    alt={each.user.name}
+                                  />
+                                )}
+                              </Avatar>
+                            )),
+                          )}
+                        </div>
                         {pipe(
                           each.members,
-                          Array.take(3),
-                          Array.map((each) => (
-                            <Avatar className="size-4" key={each.id}>
-                              <AvatarFallback></AvatarFallback>
-                              {each.user.avatar && (
-                                <AvatarImage
-                                  src={each.user.avatar}
-                                  alt={each.user.name}
-                                />
-                              )}
-                            </Avatar>
-                          )),
+                          (arr) => arr.length,
+                          (len) =>
+                            len > 3 ? (
+                              <span className="flex h-fit items-center justify-center bg-transparent px-2 text-xs text-muted-foreground shadow-none hover:bg-transparent group-hover:text-foreground">
+                                +{len - 3}
+                              </span>
+                            ) : null,
                         )}
-                      </div>
-                      {pipe(
-                        each.members,
-                        (arr) => arr.length,
-                        (len) =>
-                          len > 3 ? (
-                            <span className="flex h-fit items-center justify-center bg-transparent px-2 text-xs text-muted-foreground shadow-none hover:bg-transparent group-hover:text-foreground">
-                              +{len - 3}
-                            </span>
-                          ) : null,
-                      )}
-                    </button>
-                  </div>
-                </div>
-              ))}
+                      </button>
+                    </div>
+                  </WorkspaceIdPageRoute.Link>
+                )),
+              )}
             </div>
           </div>
         ),

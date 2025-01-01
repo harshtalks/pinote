@@ -12,6 +12,8 @@ import {
   Heading4,
   Heading5,
   Heading6,
+  Divide,
+  Table,
 } from "lucide-react";
 import { createSuggestionsItems } from "@harshtalks/slash-tiptap";
 
@@ -103,6 +105,24 @@ export const slashSuggestions = createSuggestionsItems<{
     icon: <ListOrdered size={16} />,
     command: ({ editor, range }) => {
       editor.chain().focus().deleteRange(range).toggleOrderedList().run();
+    },
+  },
+  {
+    title: "Divider",
+    description: "Add a horizontal divider.",
+    searchTerms: ["line", "separator", "divider"],
+    icon: <Divide size={16} />,
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).setHorizontalRule().run();
+    },
+  },
+  {
+    title: "Table",
+    description: "Insert a table.",
+    searchTerms: ["table", "grid"],
+    icon: <Table size={16} />,
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).insertTable().run();
     },
   },
 ]);

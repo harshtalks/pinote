@@ -3,6 +3,7 @@ import { slashSuggestions } from "@/editor/plugins/slash.plugin";
 import { SlashCmd } from "@harshtalks/slash-tiptap";
 import { EditorContent } from "@tiptap/react";
 import { BubbleMenuWrapper } from "./bubble-menu";
+import TableMenu from "./table-menu";
 
 const Playground = () => {
   const editor = useNotebookEditorCtx();
@@ -10,8 +11,9 @@ const Playground = () => {
     <div>
       <BubbleMenuWrapper />
       <SlashCmd.Root editor={editor}>
-        <SlashCmd.Cmd className="z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-muted bg-background p-2 shadow-[rgba(100,_100,_111,_0.2)_0px_7px_29px_0px] transition-all">
+        <SlashCmd.Cmd className="z-50 h-auto max-h-[330px] overflow-y-auto rounded-md border border-border bg-background p-2 shadow-[rgba(100,_100,_111,_0.2)_0px_7px_29px_0px] transition-all">
           <SlashCmd.List>
+            <p className="pb-2 text-xs text-muted-foreground">Add blocks</p>
             {slashSuggestions.map((item) => (
               <SlashCmd.Item
                 value={item.title}
@@ -38,6 +40,7 @@ const Playground = () => {
           </SlashCmd.List>
         </SlashCmd.Cmd>
       </SlashCmd.Root>
+      <TableMenu />
       <EditorContent editor={editor} />
     </div>
   );
