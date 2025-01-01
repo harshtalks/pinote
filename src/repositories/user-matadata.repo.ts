@@ -37,6 +37,7 @@ export const createUserMeta = (
         }),
     ),
     Effect.andThen((res) => res[0]),
+    Effect.withSpan("userMetaRepo.createUserMeta"),
   );
 
 // This will get the user metadata by the user id
@@ -56,6 +57,7 @@ export const getUserMetaRecoveryCode = (userId: Branded.UserId) =>
     Effect.map((result) => result.recoveryCode),
     Effect.map(decodeBase64),
     Effect.andThen(decryptToString),
+    Effect.withSpan("userMetaRepo.getUserMetaRecoveryCode"),
   );
 
 export const updateUserMetaRecoveryCode =
@@ -76,6 +78,7 @@ export const updateUserMetaRecoveryCode =
           new httpError.NotFoundError({ message: "No user metadata found" }),
       ),
       Effect.andThen((result) => result[0]),
+      Effect.withSpan("userMetaRepo.updateUserMetaRecoveryCode"),
     );
 
 export const resetUserMetaRecoveryCode =
@@ -83,4 +86,7 @@ export const resetUserMetaRecoveryCode =
     Effect.all([
       updateUserMetaRecoveryCode(userId)(newRecoveryCode),
       authenticatorRepo.deleteAuthenticators(userId),
-    ]).pipe(Effect.andThen(() => true));
+    ]).pipe(
+      Effect.andThen(() => true),
+      Effect.withSpan("userMetaRepo.resetUserMetaRecoveryCode"),
+    );

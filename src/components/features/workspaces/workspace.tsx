@@ -2,13 +2,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { api } from "@/trpc/server";
 import { AddNewWorkspace } from "./add-new-workspace";
 import { Result } from "@/utils/*";
-import { Array, Match } from "effect";
+import { Array, Match, pipe } from "effect";
 import { ArrowRight, CircleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DateTime } from "luxon";
+import { RelativeDate } from "../global/relative-date";
 
 export const Workspace = async () => {
   const user = await api.user.me();
   const workspaces = await api.workspace.workspaces();
+  console.log(workspaces);
 
   return (
     <div className="max-w-3xl space-y-12 py-24 mx-auto">
@@ -84,9 +87,65 @@ export const Workspace = async () => {
             )),
           ),
         onOk: (workspaces) => (
-          <div>
+          <div className="space-y-8 max-w-xl">
             <AddNewWorkspace />
-            <div></div>
+            <div className="space-y-2">
+              {Array.map(workspaces, (each) => (
+                <div
+                  key={each.id}
+                  className="relative flex items-start gap-2 rounded-lg border border-input p-4 shadow-sm shadow-black/5 hover:border-ring"
+                >
+                  <div className="grid grow gap-2">
+                    <div className="flex items-center justify-between">
+                      <p>
+                        {each.name}{" "}
+                        <span className="text-xs font-normal leading-[inherit] text-muted-foreground">
+                          {each.isPrivate ? "Private" : "Public"}
+                        </span>
+                      </p>
+                      <div className="text-xs text-muted-foreground">
+                        <RelativeDate date={each.createdAt} />
+                      </div>
+                    </div>
+                    <p
+                      id="radio-08-r2-description"
+                      className="text-xs text-muted-foreground"
+                    >
+                      {each.description}
+                    </p>
+                    <button className="flex items-center hover:shadow-sm hover:border-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground focus-visible:ring-offset-2 transition-all w-fit rounded-full border border-border bg-background p-1">
+                      <div className="flex -space-x-3">
+                        {pipe(
+                          each.members,
+                          Array.take(3),
+                          Array.map((each) => (
+                            <Avatar className="size-4" key={each.id}>
+                              <AvatarFallback></AvatarFallback>
+                              {each.user.avatar && (
+                                <AvatarImage
+                                  src={each.user.avatar}
+                                  alt={each.user.name}
+                                />
+                              )}
+                            </Avatar>
+                          )),
+                        )}
+                      </div>
+                      {pipe(
+                        each.members,
+                        (arr) => arr.length,
+                        (len) =>
+                          len > 3 ? (
+                            <span className="flex h-fit items-center justify-center bg-transparent px-2 text-xs text-muted-foreground shadow-none hover:bg-transparent group-hover:text-foreground">
+                              +{len - 3}
+                            </span>
+                          ) : null,
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ),
       })}

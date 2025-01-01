@@ -26,6 +26,7 @@ export const createSession = (session: SessionInsert) =>
         }),
     ),
     Effect.andThen((result) => result[0]),
+    Effect.withSpan("sessionRepo.createSession"),
   );
 
 // This will get the session by the session id
@@ -42,6 +43,7 @@ export const getSessionBySessionId = (sessionId: Branded.SessionId) =>
         }),
     ),
     Effect.andThen((result) => result[0]),
+    Effect.withSpan("sessionRepo.getSessionBySessionId"),
   );
 
 export type SessionWithUser = Session & {
@@ -71,6 +73,7 @@ export const getSessionBySessionIdWithUser = (sessionId: Branded.SessionId) =>
         },
       }),
     ),
+    Effect.withSpan("sessionRepo.getSessionBySessionIdWithUser"),
   );
 
 // This will delete the session
@@ -87,6 +90,7 @@ export const deleteSession = (sessionId: Branded.SessionId) =>
         }),
     ),
     Effect.andThen((res) => res[0]),
+    Effect.withSpan("sessionRepo.deleteSession"),
   );
 
 // delete all sessions
@@ -102,6 +106,7 @@ export const deleteSessions = (userId: Branded.UserId) =>
           message: "Something went wrong while deleting the session",
         }),
     ),
+    Effect.withSpan("sessionRepo.deleteSessions"),
   );
 
 // This will update the session expiry
@@ -134,6 +139,7 @@ export const updateSessionExpiry = (
       (error) =>
         new httpError.InternalServerError({ message: getErrorMessage(error) }),
     ),
+    Effect.withSpan("sessionRepo.updateSessionExpiry"),
   );
 
 export const setSessionTFStatus =
@@ -157,6 +163,7 @@ export const setSessionTFStatus =
           }),
       ),
       Effect.map((res) => res[0]),
+      Effect.withSpan("sessionRepo.setSessionTFStatus"),
       Effect.catchAllDefect(
         (error) =>
           new httpError.InternalServerError({

@@ -119,6 +119,7 @@ export const GET = async (request: Request) => {
       );
     }
   }).pipe(
+    Effect.withSpan("github-auth.callback"),
     Effect.catchAllDefect((err) =>
       Effect.succeed(
         NextResponse.redirect(

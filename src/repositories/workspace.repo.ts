@@ -1,11 +1,10 @@
 import Database from "@/db/*";
 import { AddNewWorkspaceSchema, workspaces } from "@/db/schema/*";
-import { Array, Brand, Effect } from "effect";
-import { dbTry } from "./common";
+import { Array, Effect } from "effect";
+import { dbTry, isNotUndefined } from "./common";
 import { httpError } from "@/utils/*";
 import { addNewMember, getMembersForUserId } from "./member.repo";
 import { Branded } from "@/types/*";
-import { eq } from "drizzle-orm";
 
 export const addNewWorkspace = (workspace: AddNewWorkspaceSchema) =>
   Database.pipe(
@@ -14,11 +13,11 @@ export const addNewWorkspace = (workspace: AddNewWorkspaceSchema) =>
       Array.isNonEmptyArray,
       () =>
         new httpError.NotFoundError({
-          message: "We could not find user associated with given user id",
+          message: `Looks like we could not create the workspace`,
         }),
     ),
     Effect.map((workspaces) => workspaces[0]),
-    Effect.andThen((workspace) =>
+    Effect.flatMap((workspace) =>
       addNewMember({
         permission: "write",
         role: "admin",
@@ -32,16 +31,24 @@ export const addNewWorkspace = (workspace: AddNewWorkspaceSchema) =>
 export const getWorkspaceById = (workspaceId: Branded.WorkspaceId) =>
   Database.pipe(
     dbTry((db) =>
-      db.select().from(workspaces).where(eq(workspaces.id, workspaceId)),
+      db.query.workspaces.findFirst({
+        where: (table, { eq }) => eq(table.id, workspaceId),
+        with: {
+          members: {
+            with: {
+              user: true,
+            },
+          },
+        },
+      }),
     ),
     Effect.filterOrFail(
-      Array.isNonEmptyArray,
+      isNotUndefined,
       () =>
         new httpError.NotFoundError({
           message: "We could not find user associated with given user id",
         }),
     ),
-    Effect.map((workspaces) => workspaces[0]),
     Effect.withSpan("workspaceRepo.getWorkspaceById"),
   );
 

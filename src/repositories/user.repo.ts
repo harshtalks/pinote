@@ -19,6 +19,7 @@ export const getUserById = (userId: Branded.UserId) =>
           message: "We could not find user associated with given user id",
         }),
     ),
+    Effect.withSpan("userRepo.getUserById"),
   );
 
 export const getUserByGithubId = (githubId: Branded.GithubId) =>
@@ -33,6 +34,7 @@ export const getUserByGithubId = (githubId: Branded.GithubId) =>
         }),
     ),
     Effect.andThen((users) => users[0]),
+    Effect.withSpan("userRepo.getUserByGithubId"),
   );
 
 export const createNewUser = (user: UserInsert) => {
@@ -46,6 +48,7 @@ export const createNewUser = (user: UserInsert) => {
         }),
     ),
     Effect.andThen((users) => users[0]),
+    Effect.withSpan("userRepo.createNewUser"),
   );
 };
 
@@ -69,6 +72,7 @@ export const updateTfSkipStatus = (userId: Branded.UserId) => (skip: boolean) =>
         }),
     ),
     Effect.andThen((users) => users[0]),
+    Effect.withSpan("userRepo.updateTfSkipStatus"),
   );
 
 export const updateTFStatus = (userId: Branded.UserId) => (status: boolean) =>
@@ -89,6 +93,7 @@ export const updateTFStatus = (userId: Branded.UserId) => (status: boolean) =>
         }),
     ),
     Effect.andThen((users) => users[0]),
+    Effect.withSpan("userRepo.updateTfSkipStatus"),
   );
 
 export const resetUserTf = (userId: Branded.UserId) =>
@@ -112,6 +117,7 @@ export const resetUserTf = (userId: Branded.UserId) =>
         }),
     ),
     Effect.andThen((users) => users[0]),
+    Effect.withSpan("userRepo.resetUserTf"),
   );
 
 export const resetUser = (userId: Branded.UserId) =>
@@ -125,4 +131,7 @@ export const resetUser = (userId: Branded.UserId) =>
         Effect.andThen(encryptString),
         Effect.andThen(userMetaRepo.updateUserMetaRecoveryCode(userId)),
       ),
-  ]).pipe(Effect.andThen(() => true));
+  ]).pipe(
+    Effect.andThen(() => true),
+    Effect.withSpan("userRepo.resetUser"),
+  );

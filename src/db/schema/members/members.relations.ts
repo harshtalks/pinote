@@ -9,7 +9,7 @@ export const memberRelations = relations(members, ({ one }) => ({
     references: [users.id],
   }),
   workspace: one(workspaces, {
-    fields: [members.userId],
+    fields: [members.workspaceId],
     references: [workspaces.id],
   }),
 }));

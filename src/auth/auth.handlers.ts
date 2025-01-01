@@ -44,6 +44,7 @@ export const createSession = (
           userAgent: ua,
         }) as SessionInsert,
     ),
+    Effect.withSpan("auth.handlers.createSession"),
     Effect.andThen(sessionRepo.createSession),
   );
 
@@ -60,6 +61,7 @@ export const validateSessionToken = (token: Redacted.Redacted<string>) =>
     Effect.andThen(Branded.SessionId),
     Effect.andThen(sessionRepo.getSessionBySessionIdWithUser),
     Effect.andThen(validateSession),
+    Effect.withSpan("auth.handlers.validateSessionToken"),
   );
 
 export const validateSession = (sessionWithUser: SessionWithUser | undefined) =>
@@ -124,7 +126,9 @@ export const validateSession = (sessionWithUser: SessionWithUser | undefined) =>
         ),
       },
     });
-  });
+  }).pipe(Effect.withSpan("auth.handlers.validateSession"));
 
 export const invalidateSession = (sessionId: Branded.SessionId) =>
-  sessionRepo.deleteSession(sessionId);
+  sessionRepo
+    .deleteSession(sessionId)
+    .pipe(Effect.withSpan("auth.handlers.invalidateSession"));

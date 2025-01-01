@@ -13,7 +13,7 @@ export const addNewMember = (member: MemberInsert) =>
       Array.isNonEmptyArray,
       () =>
         new httpError.NotFoundError({
-          message: "We could not find user associated with given user id",
+          message: `Looks like we could not create the member. Please try again.`,
         }),
     ),
     Effect.withSpan("memberRepo.addNewMember"),
@@ -27,7 +27,8 @@ export const getMembersForUserId = (userId: Branded.UserId) => {
       Array.isNonEmptyArray,
       () =>
         new httpError.NotFoundError({
-          message: "We could not find user associated with given user id",
+          message:
+            "We could not find any members associated with given user id",
         }),
     ),
     Effect.withSpan("memberRepo.getMembersForUserId"),

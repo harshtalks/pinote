@@ -29,6 +29,7 @@ export const GET = async (request: Request) => {
     // Redirect to the github oauth url
     return NextResponse.redirect(url);
   }).pipe(
+    Effect.withSpan("github-auth.sign-in"),
     Effect.catchAllDefect((err) =>
       Effect.succeed(
         NextResponse.redirect(

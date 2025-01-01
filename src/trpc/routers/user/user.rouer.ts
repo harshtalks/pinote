@@ -11,6 +11,7 @@ export const userRouter = createTRPCRouter({
     ctx.session.pipe(
       Effect.map((session) => session.user),
       provideDB,
+      Effect.withSpan("userRouter.me"),
       trpcRunTime.runPromise,
     ),
   ),
@@ -23,6 +24,7 @@ export const userRouter = createTRPCRouter({
       Result.flatten,
       Result.catchAll,
       Result.catchAllDefect,
+      Effect.withSpan("userRouter.reset"),
       trpcRunTime.runPromise,
     );
   }),

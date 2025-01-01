@@ -15,3 +15,7 @@ export const dbTry =
       catch: dbError,
     });
   };
+
+export const isNotUndefined = <A>(value: A | undefined): value is A => {
+  return value !== undefined;
+};

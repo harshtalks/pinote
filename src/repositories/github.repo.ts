@@ -40,6 +40,7 @@ export const getCurrentUser = (token: Redacted.Redacted<string>) => {
     HttpClientRequest.bearerToken(Redacted.value(token)),
     HttpClient.execute,
     Effect.andThen(HttpClientResponse.schemaBodyJson(GithubUser)),
+    Effect.withSpan("github.getCurrentUser"),
   );
 };
 
@@ -50,6 +51,7 @@ export const getCurrentUserEmails = (token: Redacted.Redacted<string>) =>
     Effect.andThen(
       HttpClientResponse.schemaBodyJson(Schema.NonEmptyArray(GithubEmail)),
     ),
+    Effect.withSpan("github.getCurrentUserEmails"),
   );
 
 export const provideFetchLayer = provideDefault(FetchHttpClient.layer);

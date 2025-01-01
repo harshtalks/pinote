@@ -25,6 +25,7 @@ export const getAuthenticatorById = (credentialId: Uint8Array) =>
           message: "No authenticator was found",
         }),
     ),
+    Effect.withSpan("authenticatorRepo.getAuthenticatorById"),
   );
 
 export const getUserAuthenticator =
@@ -46,6 +47,7 @@ export const getUserAuthenticator =
             message: "No authenticator was found for the user",
           }),
       ),
+      Effect.withSpan("authenticatorRepo.getUserAuthenticator"),
     );
 
 export const getUserAuthenticators = (userId: Branded.UserId) =>
@@ -62,6 +64,7 @@ export const getUserAuthenticators = (userId: Branded.UserId) =>
           message: "No authenticators were found for the user",
         }),
     ),
+    Effect.withSpan("authenticatorRepo.getUserAuthenticators"),
   );
 
 export const createNewAuthenticator = (authenticator: AuthenticatorInsert) => {
@@ -75,6 +78,7 @@ export const createNewAuthenticator = (authenticator: AuthenticatorInsert) => {
         }),
     ),
     Effect.andThen((result) => result[0]),
+    Effect.withSpan("authenticatorRepo.createNewAuthenticator"),
   );
 };
 
@@ -100,6 +104,7 @@ export const deleteUserAuthenticator =
           }),
       ),
       Effect.andThen((result) => result[0]),
+      Effect.withSpan("authenticatorRepo.deleteUserAuthenticator"),
     );
   };
 
@@ -118,4 +123,5 @@ export const deleteAuthenticators = (userId: Branded.UserId) =>
           message: "No authenticator was deleted",
         }),
     ),
+    Effect.withSpan("authenticatorRepo.deleteAuthenticators"),
   );

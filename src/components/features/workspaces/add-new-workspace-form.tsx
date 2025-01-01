@@ -67,7 +67,8 @@ export const AddNewWorkspaceForm = ({
         }),
       {
         onSuccess: () => {
-          window.location.reload();
+          onCancel?.();
+          router.refresh();
         },
       },
     );
@@ -184,7 +185,7 @@ export const AddNewWorkspaceForm = ({
             }}
           />
           <Button
-            type="submit"
+            type="button"
             variant="ghost"
             onClick={() => {
               form.reset();

@@ -27,4 +27,4 @@ export const resetTwoFactor =
             "The token provided is incorrect. Please provide the correct token to reset the two factor authentication.",
         });
       }
-    });
+    }).pipe(Effect.withSpan("auth.two-factor.resetTwoFactor"));
