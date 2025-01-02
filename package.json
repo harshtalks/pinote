@@ -86,6 +86,7 @@
     "react": "19.0.0-rc-02c0e824-20241028",
     "react-dom": "19.0.0-rc-02c0e824-20241028",
     "react-hook-form": "^7.54.1",
+    "replicache": "^15.0.1",
     "server-only": "^0.0.1",
     "sonner": "^1.7.0",
     "superjson": "^2.2.1",

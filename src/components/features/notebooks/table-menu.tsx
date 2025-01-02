@@ -89,7 +89,7 @@ const TableMenu = () => {
         {tableMenuBtns.map((btn, i) => (
           <BubbleMenuBtn
             key={i}
-            className="text-xs px-2 py-2 text-muted-foreground w-full rounded-md inline-flex gap-2 justify-start items-center hover:bg-zinc-100"
+            className="text-xs px-2 py-2 text-muted-foreground w-full prose-td:border prose-thead:bold rounded-md inline-flex gap-2 justify-start items-center hover:bg-zinc-100"
             onClick={() => btn.onClick(editor)}
           >
             <btn.icon className="shrink-0 size-3.5" />

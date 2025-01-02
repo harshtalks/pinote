@@ -24,7 +24,9 @@ const env = createEnv({
    *
    * 💡 You'll get type errors if these are not prefixed with NEXT_PUBLIC_.
    */
-  // client: {},
+  client: {
+    NEXT_PUBLIC_REPLICACHE_KEY: z.string().min(1),
+  },
   /*
    * Due to how Next.js bundles environment variables on Edge and Client,
    * we need to manually destructure them to make sure all are included in bundle.
@@ -39,6 +41,7 @@ const env = createEnv({
     GITHUB_REDIRECT_URI: process.env.GITHUB_REDIRECT_URI,
     NODE_ENV: process.env.NODE_ENV,
     ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
+    NEXT_PUBLIC_REPLICACHE_KEY: process.env.NEXT_PUBLIC_REPLICACHE_KEY,
   },
 });
 

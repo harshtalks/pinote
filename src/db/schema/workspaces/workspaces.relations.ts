@@ -2,6 +2,7 @@ import { relations } from "drizzle-orm";
 import { members } from "../members/members.table";
 import { workspaces } from "./workspaces.table";
 import { users } from "../users/users.table";
+import { notebooks } from "../notebooks/notebooks.table";
 
 export const workspaceRelations = relations(workspaces, ({ many, one }) => ({
   members: many(members),
@@ -9,4 +10,5 @@ export const workspaceRelations = relations(workspaces, ({ many, one }) => ({
     fields: [workspaces.creatorId],
     references: [users.id],
   }),
+  notebooks: many(notebooks),
 }));

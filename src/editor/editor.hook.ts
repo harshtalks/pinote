@@ -26,6 +26,7 @@ import Typography from "@tiptap/extension-typography";
 import UnderlineNode from "@tiptap/extension-underline";
 import { useEditor } from "@tiptap/react";
 import { slashSuggestions } from "./plugins/slash.plugin";
+import Gapcursor from "@tiptap/extension-gapcursor";
 
 const useNotebookEditor = () => {
   const editor = useEditor({
@@ -84,6 +85,7 @@ const useNotebookEditor = () => {
       }),
       LinkExtension,
       HorizontalRule,
+      Gapcursor,
     ],
     editorProps: {
       handleDOMEvents: {
@@ -93,7 +95,7 @@ const useNotebookEditor = () => {
       },
       attributes: {
         class:
-          "prose prose-sm prose-stone leading-tight w-full focus:outline-none",
+          "prose prose-sm leading-tight marker:text-gray-900 w-full focus:outline-none",
       },
     },
   });
