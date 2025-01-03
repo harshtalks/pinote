@@ -1,7 +1,11 @@
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
 import { prefixedId } from "../schema.helper";
-import { createdAtSchema, updatedAtSchema } from "../schema.common";
+import {
+  createdAtSchema,
+  lastModifiedSchema,
+  updatedAtSchema,
+} from "../schema.common";
 import { workspaces } from "../*";
 
 export const files = sqliteTable("files", {
@@ -16,4 +20,5 @@ export const files = sqliteTable("files", {
       onDelete: "cascade",
     }),
   content: t.text().notNull(),
+  lastModifiedAt: lastModifiedSchema,
 });

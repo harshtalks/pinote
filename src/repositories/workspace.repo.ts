@@ -39,6 +39,7 @@ export const getWorkspaceById = (workspaceId: Branded.WorkspaceId) =>
               user: true,
             },
           },
+          notebooks: true,
         },
       }),
     ),

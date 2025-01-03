@@ -5,8 +5,7 @@ import { Result } from "@/utils/*";
 import { Array, Match, pipe } from "effect";
 import { ArrowRight, CircleAlert, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RelativeDate } from "../global/relative-date";
-import WorkspaceIdPageRoute from "@/app/(pages)/(workspaces)/workspaces/[workspaceId]/route.info";
+import SelectWorkspace from "./select-workspace";
 
 export const Workspace = async () => {
   return await Promise.all([api.user.me(), api.workspace.workspaces()]).then(
@@ -90,60 +89,7 @@ export const Workspace = async () => {
                 {pipe(
                   workspaces,
                   Array.map((each) => (
-                    <WorkspaceIdPageRoute.Link
-                      params={{ workspaceId: each.id }}
-                      key={each.id}
-                      className="relative flex items-start focus:outline-none transition-all focus-visible:ring-1 focus-visible:ring-offset-2 focus-visible:ring-foreground gap-2 rounded-lg w-full border border-input p-4 hover:border-ring"
-                    >
-                      <div className="grid grow gap-2">
-                        <div className="flex items-center justify-between">
-                          <p>
-                            {each.name}{" "}
-                            <span className="text-xs font-normal leading-[inherit] text-muted-foreground">
-                              ({each.isPrivate ? "Private" : "Public"})
-                            </span>
-                          </p>
-                          <div className="text-xs text-muted-foreground">
-                            <RelativeDate date={each.createdAt} />
-                          </div>
-                        </div>
-                        <p
-                          id="radio-08-r2-description"
-                          className="text-xs text-start text-muted-foreground"
-                        >
-                          {each.description}
-                        </p>
-                        <button className="flex items-center hover:shadow-sm hover:border-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground focus-visible:ring-offset-2 transition-all w-fit rounded-full border border-border bg-background p-1">
-                          <div className="flex -space-x-3">
-                            {pipe(
-                              each.members,
-                              Array.take(3),
-                              Array.map((each) => (
-                                <Avatar className="size-4" key={each.id}>
-                                  <AvatarFallback></AvatarFallback>
-                                  {each.user.avatar && (
-                                    <AvatarImage
-                                      src={each.user.avatar}
-                                      alt={each.user.name}
-                                    />
-                                  )}
-                                </Avatar>
-                              )),
-                            )}
-                          </div>
-                          {pipe(
-                            each.members,
-                            (arr) => arr.length,
-                            (len) =>
-                              len > 3 ? (
-                                <span className="flex h-fit items-center justify-center bg-transparent px-2 text-xs text-muted-foreground shadow-none hover:bg-transparent group-hover:text-foreground">
-                                  +{len - 3}
-                                </span>
-                              ) : null,
-                          )}
-                        </button>
-                      </div>
-                    </WorkspaceIdPageRoute.Link>
+                    <SelectWorkspace workspace={each} key={each.id} />
                   )),
                 )}
               </div>

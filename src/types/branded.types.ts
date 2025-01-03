@@ -16,3 +16,6 @@ export const GithubId = Brand.nominal<GithubId>();
 
 export type WorkspaceId = string & Brand.Brand<"WorkspaceId">;
 export const WorkspaceId = Brand.nominal<WorkspaceId>();
+
+export type LastModified = string & Brand.Brand<"LastModified">;
+export const LastModified = Brand.nominal<LastModified>();

@@ -1,8 +1,13 @@
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
 import { prefixedId } from "../schema.helper";
-import { createdAtSchema, updatedAtSchema } from "../schema.common";
+import {
+  createdAtSchema,
+  lastModifiedSchema,
+  updatedAtSchema,
+} from "../schema.common";
 import { members, workspaces } from "../*";
+import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 export const notebooks = sqliteTable("notebooks", {
   id: t.text().primaryKey().$defaultFn(prefixedId("notebook")),
@@ -28,4 +33,8 @@ export const notebooks = sqliteTable("notebooks", {
       onDelete: "no action",
     }),
   nodes: t.text().notNull(),
+  lastModifiedAt: lastModifiedSchema,
 });
+
+export type Notebook = InferSelectModel<typeof notebooks>;
+export type NotebookInsert = InferInsertModel<typeof notebooks>;
