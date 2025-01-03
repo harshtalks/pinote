@@ -1,12 +1,66 @@
 "use client";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { ChangeEvent, ComponentPropsWithoutRef, useRef } from "react";
+import {
+  ChangeEvent,
+  ComponentPropsWithoutRef,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { useDebounce } from "@uidotdev/usehooks";
+import { useNotebookLofiStore, notebookQueries } from "@/lofi/notebooks/*";
+import { Option, pipe } from "effect";
+import NotebookIdPageRoute from "@/app/(pages)/(workspaces)/workspaces/[workspaceId]/notebooks/[notebookId]/route.info";
+import { Branded } from "@/types/*";
 
 export function TitleInput({
   className,
   ...props
 }: ComponentPropsWithoutRef<"textarea">) {
+  const [value, setValue] = useState("");
+  const debouncedValue = useDebounce(value, 500);
+  const localStore = useNotebookLofiStore();
+  const { notebookId } = NotebookIdPageRoute.useParams();
+
+  useEffect(() => {
+    Option.fromNullable(localStore).pipe(
+      Option.match({
+        onSome: (store) => {
+          store.subscribe(
+            (tx) =>
+              pipe(notebookId, Branded.NotebookId, (id) =>
+                notebookQueries.read(tx, id),
+              ),
+            {
+              onData: (data) => {
+                if (data?.title) {
+                  setValue(data.title);
+                }
+              },
+            },
+          );
+        },
+        onNone: () => {},
+      }),
+    );
+  }, [localStore, notebookId]);
+
+  useEffect(() => {
+    Option.fromNullable(localStore).pipe(
+      Option.match({
+        onSome: (store) => {
+          store.mutate.updateNotebook({
+            title: debouncedValue,
+            id: notebookId,
+            createdAt: Date.now(),
+          });
+        },
+        onNone: () => {},
+      }),
+    );
+  }, [debouncedValue, localStore, notebookId]);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const defaultRows = 1;
   const maxRows = undefined; // You can set a max number of rows
@@ -29,6 +83,8 @@ export function TitleInput({
     const newHeight = Math.min(textarea.scrollHeight + borderHeight, maxHeight);
 
     textarea.style.height = `${newHeight}px`;
+
+    setValue(textarea.value);
   };
 
   const onKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -40,6 +96,7 @@ export function TitleInput({
   return (
     <Textarea
       id="textarea-19"
+      value={value}
       placeholder="Untitled"
       ref={textareaRef}
       onChange={handleInput}

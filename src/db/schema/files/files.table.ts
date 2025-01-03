@@ -1,6 +1,6 @@
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
-import { prefixedId } from "../schema.helper";
+import { PrefixedIDs } from "../schema.helper";
 import {
   createdAtSchema,
   lastModifiedSchema,
@@ -9,7 +9,7 @@ import {
 import { workspaces } from "../*";
 
 export const files = sqliteTable("files", {
-  id: t.text().primaryKey().$defaultFn(prefixedId("file")),
+  id: t.text().primaryKey().$defaultFn(PrefixedIDs.file),
   fileName: t.text().notNull(),
   createdAt: createdAtSchema,
   updatedAt: updatedAtSchema,

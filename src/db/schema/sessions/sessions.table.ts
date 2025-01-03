@@ -1,6 +1,6 @@
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
-import { prefixedId } from "../schema.helper";
+import { PrefixedIDs } from "../schema.helper";
 import { createdAtSchema, updatedAtSchema } from "../schema.common";
 import { users } from "../users/*";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
@@ -11,7 +11,7 @@ export type UserAgent = ReturnType<typeof userAgent>;
 export const sessions = sqliteTable(
   "sessions",
   {
-    id: t.text().primaryKey().$defaultFn(prefixedId("session")),
+    id: t.text().primaryKey().$defaultFn(PrefixedIDs.session),
     createdAt: createdAtSchema,
     updatedAt: updatedAtSchema,
     userId: t

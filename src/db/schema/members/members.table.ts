@@ -1,6 +1,6 @@
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
-import { prefixedId } from "../schema.helper";
+import { PrefixedIDs } from "../schema.helper";
 import { createdAtSchema, updatedAtSchema } from "../schema.common";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { users, workspaces } from "../*";
@@ -9,7 +9,7 @@ import { permissions, roles } from "../schema.enums";
 export const members = sqliteTable(
   "members",
   {
-    id: t.text().primaryKey().$defaultFn(prefixedId("member")),
+    id: t.text().primaryKey().$defaultFn(PrefixedIDs.member),
     userId: t
       .text()
       .notNull()

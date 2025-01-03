@@ -1,12 +1,12 @@
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
-import { prefixedId } from "../schema.helper";
+import { PrefixedIDs } from "../schema.helper";
 import { createdAtSchema, updatedAtSchema } from "../schema.common";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { users } from "../*";
 
 export const userMetadata = sqliteTable("usersMetadata", {
-  id: t.text().primaryKey().$defaultFn(prefixedId("user_metadata")),
+  id: t.text().primaryKey().$defaultFn(PrefixedIDs.userMetadata),
   createdAt: createdAtSchema,
   updatedAt: updatedAtSchema,
   userId: t

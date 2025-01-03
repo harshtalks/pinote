@@ -1,11 +1,16 @@
 "use client";
-import WorkspaceIdPageRoute from "@/app/(pages)/(workspaces)/workspaces/[workspaceId]/route.info";
 import { Member, Notebook, User, Workspace } from "@/db/schema/*";
 import { Array, pipe } from "effect";
 import { Merge } from "ts-essentials";
 import { RelativeDate } from "../global/relative-date";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { If } from "@/wrappers/if";
+import { api } from "@/trpc/client";
+import { Branded } from "@/types/*";
+import NotebookIdPageRoute from "@/app/(pages)/(workspaces)/workspaces/[workspaceId]/notebooks/[notebookId]/route.info";
+import { useRouter } from "next/navigation";
+import { PrefixedIDs } from "@/db/schema/schema.helper";
+import { useNotebookLofiStore } from "@/lofi/notebooks/*";
 
 const SelectWorkspace = ({
   workspace,
@@ -18,10 +23,40 @@ const SelectWorkspace = ({
     }
   >;
 }) => {
+  const localStore = useNotebookLofiStore();
+  const me = api.user.me.useQuery();
+
+  const router = NotebookIdPageRoute.useRouter(useRouter);
+
   return (
-    <WorkspaceIdPageRoute.Link
-      params={{ workspaceId: workspace.id }}
+    <button
       className="relative flex items-start focus:outline-none transition-all focus-visible:ring-1 focus-visible:ring-offset-2 focus-visible:ring-foreground gap-2 rounded-lg w-full border border-input p-4 hover:border-ring"
+      onClick={async () => {
+        if (!me.isSuccess || !localStore) {
+          return;
+        }
+
+        localStore?.mutate
+          .createNotebook({
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            creatorId: me.data.id,
+            id: PrefixedIDs.notebook(),
+            kvs: {},
+            lastModifiedAt: Branded.LastModified(new Date().toISOString()),
+            nodes: "",
+            title: "Untitled",
+            workspaceId: workspace.id,
+          })
+          .then((d) => {
+            router.push({
+              params: {
+                notebookId: d.id,
+                workspaceId: workspace.id,
+              },
+            });
+          });
+      }}
     >
       <div className="grid grow gap-2">
         <div className="flex items-center justify-between">
@@ -41,7 +76,10 @@ const SelectWorkspace = ({
         >
           {workspace.description}
         </p>
-        <button className="flex items-center hover:shadow-sm hover:border-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground focus-visible:ring-offset-2 transition-all w-fit rounded-full border border-border bg-background p-1">
+        <p
+          tabIndex={0}
+          className="flex items-center hover:shadow-sm hover:border-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground focus-visible:ring-offset-2 transition-all w-fit rounded-full border border-border bg-background p-1"
+        >
           <div className="flex -space-x-3">
             {pipe(
               workspace.members,
@@ -77,9 +115,9 @@ const SelectWorkspace = ({
                 </span>
               ) : null,
           )}
-        </button>
+        </p>
       </div>
-    </WorkspaceIdPageRoute.Link>
+    </button>
   );
 };
 

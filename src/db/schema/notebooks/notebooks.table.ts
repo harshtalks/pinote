@@ -1,6 +1,6 @@
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
-import { prefixedId } from "../schema.helper";
+import { PrefixedIDs } from "../schema.helper";
 import {
   createdAtSchema,
   lastModifiedSchema,
@@ -10,7 +10,7 @@ import { members, workspaces } from "../*";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 export const notebooks = sqliteTable("notebooks", {
-  id: t.text().primaryKey().$defaultFn(prefixedId("notebook")),
+  id: t.text().primaryKey().$defaultFn(PrefixedIDs.notebook),
   title: t.text().notNull(),
   kvs: t
     .text({

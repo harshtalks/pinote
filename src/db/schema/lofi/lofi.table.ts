@@ -1,7 +1,7 @@
 // Everything related to local first
 import { sqliteTable } from "drizzle-orm/sqlite-core";
 import * as t from "drizzle-orm/sqlite-core";
-import { prefixedId } from "../schema.helper";
+import { PrefixedIDs } from "../schema.helper";
 import {
   createdAtSchema,
   lastModifiedSchema,
@@ -10,7 +10,7 @@ import {
 import { users } from "../*";
 
 export const lofiMeta = sqliteTable("lofi_meta", {
-  id: t.text().primaryKey().$defaultFn(prefixedId("lofi_meta")),
+  id: t.text().primaryKey().$defaultFn(PrefixedIDs.lofiMeta),
   key: t.text().notNull(),
   value: t
     .text({
@@ -22,7 +22,7 @@ export const lofiMeta = sqliteTable("lofi_meta", {
 });
 
 export const lofiClientGroup = sqliteTable("lofi_client_group", {
-  id: t.text().primaryKey().$defaultFn(prefixedId("lofi_client_group")),
+  id: t.text().primaryKey().$defaultFn(PrefixedIDs.lofiClientGroup),
   createdAt: createdAtSchema,
   updatedAt: updatedAtSchema,
   userId: t
@@ -37,7 +37,7 @@ export const lofiClientGroup = sqliteTable("lofi_client_group", {
 });
 
 export const lofiClient = sqliteTable("lofi_client", {
-  id: t.text().primaryKey().$defaultFn(prefixedId("lofi_client")),
+  id: t.text().primaryKey().$defaultFn(PrefixedIDs.lofiClient),
   createdAt: createdAtSchema,
   updatedAt: updatedAtSchema,
   clientGroupId: t

@@ -9,8 +9,21 @@ export type IfProps<T> = {
   ) => ReactNode;
 };
 
+export type IfElseProps<T> = IfProps<T> & { orElse: () => ReactNode };
+
 export const If = <T,>({ value, condition, children }: IfProps<T>) =>
   Match.value(value).pipe(
     Match.when(condition, children),
     Match.orElse(() => null),
+  );
+
+export const IfElse = <T,>({
+  value,
+  condition,
+  children,
+  orElse,
+}: IfElseProps<T>) =>
+  Match.value(value).pipe(
+    Match.when(condition, children),
+    Match.orElse(orElse),
   );
