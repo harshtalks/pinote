@@ -7,6 +7,7 @@ import TableMenu from "./table-menu";
 
 const Playground = () => {
   const editor = useNotebookEditorCtx();
+
   return (
     <div>
       <BubbleMenuWrapper />

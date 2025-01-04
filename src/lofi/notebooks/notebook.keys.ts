@@ -1,8 +1,6 @@
-const mutationKeysGenerator =
-  <T extends string>(prefix: T) =>
-  (id: string) =>
-    [prefix, id].join("/") as `${T}/${string}`;
+import { mutationKeysGenerator } from "@/utils/lofi";
 
 export const notebookMutationKeys = {
   create: mutationKeysGenerator("new_notebook"),
+  all: "new_notebook",
 };

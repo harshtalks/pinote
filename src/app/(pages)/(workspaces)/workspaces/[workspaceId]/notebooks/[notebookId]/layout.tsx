@@ -3,6 +3,7 @@ import { api } from "@/trpc/server";
 import { Folder, GridIcon, PanelLeft, PlusIcon, Settings } from "lucide-react";
 import { ReactNode } from "react";
 import { Input } from "@/components/ui/input";
+import NotebookTabs from "@/components/features/notebooks/tabs";
 
 const Layout = async ({ children }: { children: ReactNode }) => {
   const me = await api.user.me();
@@ -15,21 +16,7 @@ const Layout = async ({ children }: { children: ReactNode }) => {
             <PanelLeft />
           </button>
           {/* Tabs  */}
-          <div className="flex items-center gap-4">
-            <button className="bg-gray-50 inline-flex items-center gap-2 text-xs rounded-lg border px-4 py-2">
-              <GridIcon size={16} /> Notebook 1
-            </button>
-
-            <button className="bg-gray-50 inline-flex items-center gap-2 text-xs rounded-lg border px-4 py-2">
-              <GridIcon size={16} /> Weekly Agenda
-            </button>
-            <button className="bg-gray-50 inline-flex items-center gap-2 text-xs rounded-lg border px-4 py-2">
-              <GridIcon size={16} /> Daily Agenda...
-            </button>
-            <button>
-              <PlusIcon />
-            </button>
-          </div>
+          <NotebookTabs />
         </div>
         <div className="flex items-center gap-4">
           <div className="space-y-2">

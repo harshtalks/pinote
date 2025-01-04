@@ -27,8 +27,12 @@ import UnderlineNode from "@tiptap/extension-underline";
 import { useEditor } from "@tiptap/react";
 import { slashSuggestions } from "./plugins/slash.plugin";
 import Gapcursor from "@tiptap/extension-gapcursor";
+import { useNotebookLofiStore } from "@/lofi/notebooks/notebook.provider";
+import NotebookIdPageRoute from "@/app/(pages)/(workspaces)/workspaces/[workspaceId]/notebooks/[notebookId]/route.info";
 
 const useNotebookEditor = () => {
+  const localStore = useNotebookLofiStore();
+  const { notebookId } = NotebookIdPageRoute.useParams();
   const editor = useEditor({
     extensions: [
       Document,
@@ -97,6 +101,12 @@ const useNotebookEditor = () => {
         class:
           "prose prose-sm leading-tight marker:text-gray-900 w-full focus:outline-none",
       },
+    },
+    onUpdate: ({ editor }) => {
+      localStore.mutate.updateNotebook({
+        id: notebookId,
+        nodes: editor.getHTML(),
+      });
     },
   });
 

@@ -12,6 +12,7 @@ import { pipe } from "effect";
 import { Branded } from "@/types/*";
 import { StoreKey, storeKeys } from "./store.keys";
 import env from "../../env";
+import { If } from "@/wrappers/if";
 
 const localFirstStoreCreator = <T extends MutatorDefs>(
   options: Omit<ReplicacheOptions<T>, "name" | "licenseKey"> & {
@@ -50,12 +51,23 @@ const localFirstStoreCreator = <T extends MutatorDefs>(
     }, [userId]);
 
     return (
-      <storeContext.Provider value={store}>{children}</storeContext.Provider>
+      <storeContext.Provider value={store}>
+        <If value={store} condition={(store) => !!store?.name}>
+          {() => children}
+        </If>
+      </storeContext.Provider>
     );
   };
 
   const useLocalFirst = () => {
     const ctx = useContext(storeContext);
+
+    if (!ctx) {
+      throw new Error(
+        "useLocalFirst must be used within a <LocalFirstProvider/>",
+      );
+    }
+
     return ctx;
   };
 

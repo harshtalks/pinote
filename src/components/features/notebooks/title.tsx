@@ -10,7 +10,7 @@ import {
 } from "react";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useNotebookLofiStore, notebookQueries } from "@/lofi/notebooks/*";
-import { Option, pipe } from "effect";
+import { pipe } from "effect";
 import NotebookIdPageRoute from "@/app/(pages)/(workspaces)/workspaces/[workspaceId]/notebooks/[notebookId]/route.info";
 import { Branded } from "@/types/*";
 
@@ -24,41 +24,31 @@ export function TitleInput({
   const { notebookId } = NotebookIdPageRoute.useParams();
 
   useEffect(() => {
-    Option.fromNullable(localStore).pipe(
-      Option.match({
-        onSome: (store) => {
-          store.subscribe(
-            (tx) =>
-              pipe(notebookId, Branded.NotebookId, (id) =>
-                notebookQueries.read(tx, id),
-              ),
-            {
-              onData: (data) => {
-                if (data?.title) {
-                  setValue(data.title);
-                }
-              },
-            },
-          );
+    if (localStore) {
+      localStore.subscribe(
+        (tx) =>
+          pipe(notebookId, Branded.NotebookId, (id) =>
+            notebookQueries.read(tx, id),
+          ),
+        {
+          onData: (data) => {
+            if (data?.title) {
+              setValue(data.title);
+            }
+          },
         },
-        onNone: () => {},
-      }),
-    );
+      );
+    }
   }, [localStore, notebookId]);
 
   useEffect(() => {
-    Option.fromNullable(localStore).pipe(
-      Option.match({
-        onSome: (store) => {
-          store.mutate.updateNotebook({
-            title: debouncedValue,
-            id: notebookId,
-            createdAt: Date.now(),
-          });
-        },
-        onNone: () => {},
-      }),
-    );
+    if (localStore) {
+      localStore.mutate.updateNotebook({
+        title: debouncedValue,
+        id: notebookId,
+        createdAt: Date.now(),
+      });
+    }
   }, [debouncedValue, localStore, notebookId]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);

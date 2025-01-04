@@ -36,13 +36,24 @@ const SelectWorkspace = ({
           return;
         }
 
-        localStore?.mutate
+        localStore.mutate
           .createNotebook({
             createdAt: Date.now(),
             updatedAt: Date.now(),
             creatorId: me.data.id,
             id: PrefixedIDs.notebook(),
-            kvs: {},
+            kvs: [
+              {
+                key: "Created At",
+                icon: "accessibility",
+                value: new Date().toISOString(),
+              },
+              {
+                key: "Updated At",
+                icon: "accessibility",
+                value: new Date().toISOString(),
+              },
+            ],
             lastModifiedAt: Branded.LastModified(new Date().toISOString()),
             nodes: "",
             title: "Untitled",

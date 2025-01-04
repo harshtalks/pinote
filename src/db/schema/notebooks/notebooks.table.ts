@@ -8,6 +8,14 @@ import {
 } from "../schema.common";
 import { members, workspaces } from "../*";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { IconName } from "@/types/icon";
+import { NonEmptyArray } from "ts-essentials";
+
+export type KeyValues = NonEmptyArray<{
+  key: string;
+  value: string;
+  icon: IconName;
+}>;
 
 export const notebooks = sqliteTable("notebooks", {
   id: t.text().primaryKey().$defaultFn(PrefixedIDs.notebook),
@@ -16,7 +24,7 @@ export const notebooks = sqliteTable("notebooks", {
     .text({
       mode: "json",
     })
-    .$type<Record<string, string>>()
+    .$type<KeyValues>()
     .notNull(),
   createdAt: createdAtSchema,
   updatedAt: updatedAtSchema,

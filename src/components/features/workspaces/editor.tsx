@@ -1,6 +1,6 @@
 "use client";
 import { TitleInput } from "../notebooks/title";
-import { KeyValue, keyvalues } from "../notebooks/kv";
+import { KeyValue } from "../notebooks/kv";
 import Notebook from "../notebooks/notebook";
 
 export const Editor = () => {
@@ -9,7 +9,7 @@ export const Editor = () => {
       <div className="w-[700px] flex-col gap-12 mx-auto flex text-neutral-700">
         <div className="space-y-8">
           <TitleInput />
-          <KeyValue keyvalues={keyvalues} />
+          <KeyValue />
         </div>
         <Notebook />
       </div>
