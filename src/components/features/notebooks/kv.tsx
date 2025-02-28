@@ -9,10 +9,12 @@ import { Option, pipe } from "effect";
 import { useSubscribe } from "replicache-react";
 
 export const KeyValue = () => {
-  const { notebookId } = NotebookIdPageRoute.useParams();
+  const { notebookId, workspaceId } = NotebookIdPageRoute.useParams();
   const localStore = useNotebookLofiStore();
   const notebook = useSubscribe(localStore, (tx) =>
-    pipe(notebookId, Branded.NotebookId, (id) => notebookQueries.read(tx, id)),
+    pipe(notebookId, Branded.NotebookId, (id) =>
+      notebookQueries.read(tx, Branded.WorkspaceId(workspaceId), id),
+    ),
   );
 
   return Option.fromNullable(notebook).pipe(

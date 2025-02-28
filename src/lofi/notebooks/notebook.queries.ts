@@ -6,18 +6,22 @@ import { Notebook } from "@/db/schema/*";
 import { NonEmptyArray } from "ts-essentials";
 
 export const notebookQueries = {
-  read: (tx: ReadTransaction, notebookId: Branded.NotebookId) =>
+  read: (
+    tx: ReadTransaction,
+    workspaceId: Branded.WorkspaceId,
+    notebookId: Branded.NotebookId,
+  ) =>
     pipe(
       Effect.promise(() =>
-        tx.get<Notebook>(notebookMutationKeys.create(notebookId)),
+        tx.get<Notebook>(notebookMutationKeys.create(workspaceId, notebookId)),
       ),
       Effect.runPromise,
     ),
-  readAll: (tx: ReadTransaction) =>
+  readAll: (tx: ReadTransaction, workspaceId: Branded.WorkspaceId) =>
     pipe(
       Effect.promise(async () =>
         tx.scan({
-          prefix: notebookMutationKeys.all,
+          prefix: notebookMutationKeys.all(workspaceId),
         }),
       ),
       Effect.andThen((data) => data.values()),

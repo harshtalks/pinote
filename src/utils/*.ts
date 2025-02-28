@@ -7,4 +7,3 @@ export * from "./toast";
 export * from "./service";
 export * from "./icons";
 export * from "./motion-variants";
-export * from "./lofi";

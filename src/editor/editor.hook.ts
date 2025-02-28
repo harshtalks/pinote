@@ -32,7 +32,7 @@ import NotebookIdPageRoute from "@/app/(pages)/(workspaces)/workspaces/[workspac
 
 const useNotebookEditor = () => {
   const localStore = useNotebookLofiStore();
-  const { notebookId } = NotebookIdPageRoute.useParams();
+  const { notebookId, workspaceId } = NotebookIdPageRoute.useParams();
   const editor = useEditor({
     extensions: [
       Document,
@@ -106,6 +106,8 @@ const useNotebookEditor = () => {
       localStore.mutate.updateNotebook({
         id: notebookId,
         nodes: editor.getHTML(),
+        updatedAt: Date.now(),
+        workspaceId,
       });
     },
   });

@@ -1,55 +1,24 @@
 "use client";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import {
-  ChangeEvent,
-  ComponentPropsWithoutRef,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { useDebounce } from "@uidotdev/usehooks";
+import { ChangeEvent, ComponentPropsWithoutRef, useRef } from "react";
 import { useNotebookLofiStore, notebookQueries } from "@/lofi/notebooks/*";
 import { pipe } from "effect";
 import NotebookIdPageRoute from "@/app/(pages)/(workspaces)/workspaces/[workspaceId]/notebooks/[notebookId]/route.info";
 import { Branded } from "@/types/*";
+import { useSubscribe } from "replicache-react";
 
 export function TitleInput({
   className,
   ...props
 }: ComponentPropsWithoutRef<"textarea">) {
-  const [value, setValue] = useState("");
-  const debouncedValue = useDebounce(value, 500);
   const localStore = useNotebookLofiStore();
-  const { notebookId } = NotebookIdPageRoute.useParams();
-
-  useEffect(() => {
-    if (localStore) {
-      localStore.subscribe(
-        (tx) =>
-          pipe(notebookId, Branded.NotebookId, (id) =>
-            notebookQueries.read(tx, id),
-          ),
-        {
-          onData: (data) => {
-            if (data?.title) {
-              setValue(data.title);
-            }
-          },
-        },
-      );
-    }
-  }, [localStore, notebookId]);
-
-  useEffect(() => {
-    if (localStore) {
-      localStore.mutate.updateNotebook({
-        title: debouncedValue,
-        id: notebookId,
-        createdAt: Date.now(),
-      });
-    }
-  }, [debouncedValue, localStore, notebookId]);
+  const { notebookId, workspaceId } = NotebookIdPageRoute.useParams();
+  const notebook = useSubscribe(localStore, (tx) =>
+    pipe(notebookId, Branded.NotebookId, (id) =>
+      notebookQueries.read(tx, Branded.WorkspaceId(workspaceId), id),
+    ),
+  );
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const defaultRows = 1;
@@ -74,7 +43,12 @@ export function TitleInput({
 
     textarea.style.height = `${newHeight}px`;
 
-    setValue(textarea.value);
+    localStore?.mutate.updateNotebook({
+      title: e.currentTarget.value,
+      id: notebookId,
+      createdAt: Date.now(),
+      workspaceId: Branded.WorkspaceId(workspaceId),
+    });
   };
 
   const onKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -86,7 +60,7 @@ export function TitleInput({
   return (
     <Textarea
       id="textarea-19"
-      value={value}
+      value={notebook?.title || ""}
       placeholder="Untitled"
       ref={textareaRef}
       onChange={handleInput}

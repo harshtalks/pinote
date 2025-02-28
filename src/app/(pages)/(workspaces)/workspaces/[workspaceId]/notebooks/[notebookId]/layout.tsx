@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { api } from "@/trpc/server";
-import { Folder, GridIcon, PanelLeft, PlusIcon, Settings } from "lucide-react";
+import { Folder, PanelLeft, Settings } from "lucide-react";
 import { ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import NotebookTabs from "@/components/features/notebooks/tabs";

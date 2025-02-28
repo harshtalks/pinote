@@ -6,31 +6,46 @@ import { SlashCmdProvider } from "@harshtalks/slash-tiptap";
 import { Effect, Match } from "effect";
 import Playground from "./playground";
 import { useNotebookLofiStore } from "@/lofi/notebooks/notebook.provider";
-import { useEffect } from "react";
 import NotebookIdPageRoute from "@/app/(pages)/(workspaces)/workspaces/[workspaceId]/notebooks/[notebookId]/route.info";
 import { pipe } from "effect";
 import { Branded } from "@/types/*";
 import { notebookQueries } from "@/lofi/notebooks/notebook.queries";
+import { useActionLocalStore } from "@/hooks/subscribe-local-store";
 
 const Notebook = () => {
   const { editor } = useNotebookEditor();
   const localNotebookStore = useNotebookLofiStore();
-  const { notebookId } = NotebookIdPageRoute.useParams();
+  const { notebookId, workspaceId } = NotebookIdPageRoute.useParams();
 
-  useEffect(() => {
-    pipe(localNotebookStore, (store) =>
+  useActionLocalStore(
+    localNotebookStore,
+    (store) =>
       store.query((tx) =>
-        pipe(notebookId, Branded.NotebookId, (id) =>
-          Effect.promise(() => notebookQueries.read(tx, id)).pipe(
-            Effect.andThen((data) =>
-              editor?.commands.setContent(data?.nodes || ""),
+        pipe(
+          notebookId,
+          Branded.NotebookId, // Branded.NotebookId
+          (id) =>
+            Effect.promise(() =>
+              notebookQueries.read(tx, Branded.WorkspaceId(workspaceId), id),
+            ).pipe(
+              Effect.andThen((data) =>
+                pipe(
+                  data,
+                  Match.value,
+                  Match.when(undefined, () => {
+                    // do nothing
+                  }),
+                  Match.orElse((data) =>
+                    editor?.commands.setContent(data.nodes),
+                  ),
+                ),
+              ),
+              Effect.runPromise,
             ),
-            Effect.runPromise,
-          ),
         ),
       ),
-    );
-  }, [localNotebookStore, notebookId, editor]);
+    [notebookId, editor],
+  );
 
   return Match.value(editor).pipe(
     Match.when(null, () => null),
