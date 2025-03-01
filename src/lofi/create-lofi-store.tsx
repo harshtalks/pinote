@@ -40,9 +40,11 @@ const localFirstStoreCreator = <T extends MutatorDefs>(
     useEffect(() => {
       pipe(
         new Replicache({
-          ...rest,
+          schemaVersion: "v1",
           name: storeKeys[key](userId),
           licenseKey: env.NEXT_PUBLIC_REPLICACHE_KEY,
+          pushURL: "/api/lofi/push",
+          ...rest,
         }),
         setStoreAndReturn,
         // cleaning up

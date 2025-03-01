@@ -1,16 +1,16 @@
 "use client";
 import { Member, Notebook, User, Workspace } from "@/db/schema/*";
-import { Array, pipe } from "effect";
+import { Array, Option, pipe } from "effect";
 import { Merge } from "ts-essentials";
 import { RelativeDate } from "../global/relative-date";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { If } from "@/wrappers/if";
 import { api } from "@/trpc/client";
-import { Branded } from "@/types/*";
 import NotebookIdPageRoute from "@/app/(pages)/(workspaces)/workspaces/[workspaceId]/notebooks/[notebookId]/route.info";
 import { useRouter } from "next/navigation";
 import { PrefixedIDs } from "@/db/schema/schema.helper";
 import { useNotebookLofiStore } from "@/lofi/notebooks/*";
+import { toast } from "sonner";
 
 const SelectWorkspace = ({
   workspace,
@@ -25,7 +25,6 @@ const SelectWorkspace = ({
 }) => {
   const localStore = useNotebookLofiStore();
   const me = api.user.me.useQuery();
-
   const router = NotebookIdPageRoute.useRouter(useRouter);
 
   return (
@@ -33,56 +32,69 @@ const SelectWorkspace = ({
       className="relative flex items-start focus:outline-none transition-all focus-visible:ring-1 focus-visible:ring-offset-2 focus-visible:ring-foreground gap-2 rounded-lg w-full border border-input p-4 hover:border-ring"
       onClick={async () => {
         if (!me.isSuccess || !localStore) {
+          toast.error("There is a problem while creating a notebook");
           return;
         }
 
-        localStore.mutate
-          .createNotebook({
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-            creatorId: me.data.id,
-            id: PrefixedIDs.notebook(),
-            kvs: [
-              {
-                key: "Created At",
-                icon: "accessibility",
-                value: new Date().toLocaleString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                  second: "numeric",
-                  timeZoneName: "short",
-                }),
-              },
-              {
-                key: "Updated At",
-                icon: "accessibility",
-                value: new Date().toLocaleString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "numeric",
-                  minute: "numeric",
-                  second: "numeric",
-                  timeZoneName: "short",
-                }),
-              },
-            ],
-            lastModifiedAt: Branded.LastModified(new Date().toISOString()),
-            nodes: "",
-            title: "Untitled",
-            workspaceId: workspace.id,
-          })
-          .then((d) => {
-            router.push({
-              params: {
-                notebookId: d.id,
-                workspaceId: workspace.id,
-              },
-            });
-          });
+        pipe(
+          workspace.members,
+          Array.findFirst((el) => el.userId === me.data.id),
+        ).pipe(
+          Option.match({
+            onSome: (member) => {
+              localStore.mutate
+                .createNotebook({
+                  createdAt: Date.now(),
+                  updatedAt: Date.now(),
+                  creatorId: member.id,
+                  id: PrefixedIDs.notebook(),
+                  kvs: [
+                    {
+                      key: "Created At",
+                      icon: "accessibility",
+                      value: new Date().toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                        second: "numeric",
+                        timeZoneName: "short",
+                      }),
+                    },
+                    {
+                      key: "Updated At",
+                      icon: "accessibility",
+                      value: new Date().toLocaleString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                        second: "numeric",
+                        timeZoneName: "short",
+                      }),
+                    },
+                  ],
+                  nodes: "",
+                  title: "",
+                  workspaceId: workspace.id,
+                  version: 0,
+                })
+                .then((d) => {
+                  router.push({
+                    params: {
+                      notebookId: d.id,
+                      workspaceId: workspace.id,
+                    },
+                  });
+                });
+            },
+            onNone: () => {
+              toast.error("You are not a member of this workspace");
+            },
+          }),
+        );
       }}
     >
       <div className="grid grow gap-2">

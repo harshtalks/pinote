@@ -80,7 +80,7 @@ export const authenticatedProcedure = t.procedure.use(({ ctx, next }) => {
     Effect.andThen((session) => {
       if (!session) {
         return Effect.fail(
-          new httpError.UnAuthorizedError({
+          new httpError.UnauthorizedError({
             message: "You are not authorized to access this resource",
           }),
         );

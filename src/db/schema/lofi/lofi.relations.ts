@@ -16,6 +16,6 @@ export const lofiClientGroupRelations = relations(
 export const lofiClientRelations = relations(lofiClient, ({ one }) => ({
   clientGroup: one(lofiClientGroup, {
     fields: [lofiClient.clientGroupId],
-    references: [lofiClientGroup.id],
+    references: [lofiClientGroup.clientGroupId],
   }),
 }));

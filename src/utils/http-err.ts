@@ -44,8 +44,3 @@ export const NotImplemented = makeHttpError(
   "NotImplemented",
   StatusCodes.NOT_IMPLEMENTED,
 );
-
-export const UnAuthorizedError = makeHttpError(
-  "UnAuthorizedError",
-  StatusCodes.UNAUTHORIZED,
-);

@@ -6,3 +6,4 @@ export * from "./workspaces/*"; // Workspaces
 export * from "./members/*"; // Members
 export * from "./notebooks/*"; // Notebooks
 export * from "./files/*"; // Files
+export * from "./lofi/*";

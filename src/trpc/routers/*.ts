@@ -5,6 +5,7 @@ import {
   createCallerFactory,
   createTRPCRouter,
 } from "../trpc";
+import { membersRouter } from "./members/*";
 import { tfRouter } from "./tf/*";
 import { userRouter } from "./user/*";
 import { workspaceRouter } from "./workspace/*";
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   twoFactor: tfRouter,
   user: userRouter,
   workspace: workspaceRouter,
+  members: membersRouter,
 });
 
 /**

@@ -4,6 +4,7 @@ import { WriteTransaction } from "replicache";
 import { notebookMutationKeys } from "./notebook.keys";
 import { Merge } from "ts-essentials";
 import { Branded } from "@/types/*";
+import { keyCaster } from "@/utils/casting";
 
 export const notebookMutators = {
   createNotebook: (tx: WriteTransaction, payload: Notebook) =>
@@ -49,6 +50,12 @@ export const notebookMutators = {
       Effect.as(payload),
       Effect.runPromise,
     ),
-};
+} as const;
 
 export type NotebookMutators = typeof notebookMutators;
+export type NotebookMutatorKeys = keyof typeof notebookMutators;
+
+export const {
+  isKeyInObject: isMutatorKeyOfNotebook,
+  objectKeys: notebookMutatorKeys,
+} = keyCaster(notebookMutators);

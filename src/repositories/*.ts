@@ -5,3 +5,5 @@ export * as authenticatorRepo from "./authenticator.repo"; // Authenticator Repo
 export * as userMetaRepo from "./user-matadata.repo";
 export * as workspaceRepo from "./workspace.repo";
 export * as membersRepo from "./member.repo";
+export * as replicacheRepo from "./local-first.repo";
+export * as notebookRepo from "./notebook.repo";

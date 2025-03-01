@@ -59,10 +59,10 @@ const NotebookTabs = () => {
             }),
           },
         ],
-        lastModifiedAt: Branded.LastModified(new Date().toISOString()),
         nodes: "",
         title: "Untitled",
         workspaceId: workspaceId,
+        version: 1,
       })
       .then((d) => {
         router.push(
@@ -83,9 +83,18 @@ const NotebookTabs = () => {
             Array.sort(
               pipe(
                 Order.number,
-                Order.mapInput((x: Notebook) => x.createdAt || 0),
+                Order.mapInput((x: Notebook) => x.updatedAt || 0),
+                Order.combine(
+                  pipe(
+                    Order.number,
+                    Order.mapInput((x: Notebook) => x.createdAt || 0),
+                  ),
+                ),
+                Order.reverse,
               ),
             ),
+            Array.take(5),
+            Array.reverse,
             Array.map((each) => (
               <NotebookIdPageRoute.Link
                 params={{
