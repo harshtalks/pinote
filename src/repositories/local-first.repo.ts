@@ -12,6 +12,7 @@ import {
 } from "@/db/schema/*";
 import { eq } from "drizzle-orm";
 import { httpError } from "@/utils/*";
+import { notebookRepo, workspaceRepo } from "./*";
 
 export const getClientGroupById = (
   clientGroupId: Branded.ReplicacheClientGroupId,
@@ -102,4 +103,37 @@ export const upsertClient = (client: ClientInsert) =>
     ),
     Effect.andThen((result) => result[0]),
     Effect.withSpan("replicacheRepo.upsertClient"),
+  );
+
+export const getAllClientsForGroup = (
+  clientGroupId: Branded.ReplicacheClientGroupId,
+) =>
+  pipe(
+    Database,
+    dbTry((db) =>
+      db
+        .select()
+        .from(lofiClient)
+        .where(eq(lofiClient.clientGroupId, clientGroupId)),
+    ),
+    Effect.filterOrFail(
+      Array.isNonEmptyArray,
+      () =>
+        new httpError.NotFoundError({
+          message:
+            "We could not find any clients associated with given client group",
+        }),
+    ),
+    Effect.withSpan("replicacheRepo.getAllClientsForGroup"),
+  );
+
+export const searchNotebookList = (userId: Branded.UserId) =>
+  pipe(
+    userId,
+    Branded.UserId,
+    workspaceRepo.getWorkspacesByUserId,
+    Effect.andThen(Array.map((workspace) => workspace.id)),
+    Effect.andThen(Array.map(Branded.WorkspaceId)),
+    Effect.andThen(notebookRepo.getNotebooksForWorkspaces),
+    Effect.withSpan("replicacheRepo.searchNotebookList"),
   );

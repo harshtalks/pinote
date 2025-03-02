@@ -4,7 +4,8 @@ import { Array, Effect, pipe } from "effect";
 import { dbTry } from "./common";
 import { httpError } from "@/utils/*";
 import { Merge } from "ts-essentials";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
+import { Branded } from "@/types/*";
 
 export const addNewNotebook = (notebook: Notebook) =>
   pipe(
@@ -42,4 +43,41 @@ export const updateNotebook = (
     ),
     Effect.andThen((result) => result[0]),
     Effect.withSpan("notebookRepo.updateNotebook"),
+  );
+
+export const getNotebooksForWorkspaces = (
+  workspaceIds: Branded.WorkspaceId[],
+) =>
+  pipe(
+    Database,
+    dbTry((db) =>
+      db
+        .select()
+        .from(notebooks)
+        .where(inArray(notebooks.workspaceId, workspaceIds)),
+    ),
+    Effect.filterOrFail(
+      Array.isNonEmptyArray,
+      () =>
+        new httpError.NotFoundError({
+          message: "No notebook found for the given workspace IDs",
+        }),
+    ),
+    Effect.withSpan("notebookRepo.getNotebooksForWorkspaces"),
+  );
+
+export const getNotebooksByNotebookIds = (notebookIds: Branded.NotebookId[]) =>
+  pipe(
+    Database,
+    dbTry((db) =>
+      db.select().from(notebooks).where(inArray(notebooks.id, notebookIds)),
+    ),
+    Effect.filterOrFail(
+      Array.isNonEmptyArray,
+      () =>
+        new httpError.NotFoundError({
+          message: "No notebook found for the given notebook IDs",
+        }),
+    ),
+    Effect.withSpan("notebookRepo.getNotebooksByNotebookIds"),
   );

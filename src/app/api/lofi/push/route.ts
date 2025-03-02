@@ -126,6 +126,8 @@ export const POST = (request: NextRequest) => {
       return NextResponse.json({ hello: "word" });
     }),
     Effect.withSpan("replicache.push"),
+    Effect.catchAll((err) => Effect.succeed(NextResponse.json(err))),
+    Effect.catchAllDefect((err) => Effect.succeed(NextResponse.json(err))),
     provideDB,
     Effect.runPromise,
   );
