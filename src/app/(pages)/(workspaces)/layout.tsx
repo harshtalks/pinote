@@ -12,7 +12,6 @@ const WorkspacesLayout = async ({ children }: { children: ReactNode }) => {
     .setPath(WorkspacesPageRoute.navigate())
     .setHeaders(await headers())
     .setBase()
-    .withRedirect()
     .execute();
 
   const { id: userId } = await api.user.me();
