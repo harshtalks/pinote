@@ -1,12 +1,12 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { api } from "@/trpc/server";
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// import { api } from "@/trpc/server";
 import { Folder, PanelLeft, Settings } from "lucide-react";
 import { ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import NotebookTabs from "@/components/features/notebooks/tabs";
 
 const Layout = async ({ children }: { children: ReactNode }) => {
-  const me = await api.user.me();
+  // const me = await api.user.me();
 
   return (
     <main className="bg-zinc-100 flex-col flex min-h-screen py-4 px-4 space-y-4">
@@ -34,7 +34,7 @@ const Layout = async ({ children }: { children: ReactNode }) => {
               </div>
             </div>
           </div>
-          <Avatar className="size-8">
+          {/* <Avatar className="size-8">
             <AvatarFallback className="bg-red-50">
               {me.name
                 .split(" ")
@@ -43,7 +43,7 @@ const Layout = async ({ children }: { children: ReactNode }) => {
                 .slice(0, 2)}
             </AvatarFallback>
             {me.avatar ? <AvatarImage src={me.avatar} /> : null}
-          </Avatar>
+          </Avatar> */}
         </div>
       </div>
       {/* Actual Content */}

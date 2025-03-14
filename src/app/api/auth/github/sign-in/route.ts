@@ -31,39 +31,45 @@ export const GET = async (request: Request) => {
   }).pipe(
     Effect.withSpan("github-auth.sign-in"),
     Effect.catchAllDefect((err) =>
-      Effect.succeed(
-        NextResponse.redirect(
-          makeURL(
-            ErrorPageRoute.navigate(
-              {},
-              {
-                searchParams: {
-                  message: getErrorMessage(err),
-                  code: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
-                  goBackTo: makeURL(SigninPageRoute.navigate(), request.url),
+      Effect.zipRight(
+        Effect.logError(err),
+        Effect.succeed(
+          NextResponse.redirect(
+            makeURL(
+              ErrorPageRoute.navigate(
+                {},
+                {
+                  searchParams: {
+                    message: getErrorMessage(err),
+                    code: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
+                    goBackTo: makeURL(SigninPageRoute.navigate(), request.url),
+                  },
                 },
-              },
+              ),
+              request.url,
             ),
-            request.url,
           ),
         ),
       ),
     ),
     Effect.catchAll((err) =>
-      Effect.succeed(
-        NextResponse.redirect(
-          makeURL(
-            ErrorPageRoute.navigate(
-              {},
-              {
-                searchParams: {
-                  message: err.message,
-                  code: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
-                  goBackTo: makeURL(SigninPageRoute.navigate(), request.url),
+      Effect.zipRight(
+        Effect.logError(err),
+        Effect.succeed(
+          NextResponse.redirect(
+            makeURL(
+              ErrorPageRoute.navigate(
+                {},
+                {
+                  searchParams: {
+                    message: err.message,
+                    code: StatusCodes.INTERNAL_SERVER_ERROR.toString(),
+                    goBackTo: makeURL(SigninPageRoute.navigate(), request.url),
+                  },
                 },
-              },
+              ),
+              request.url,
             ),
-            request.url,
           ),
         ),
       ),

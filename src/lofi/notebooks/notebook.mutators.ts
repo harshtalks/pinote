@@ -47,7 +47,6 @@ export const notebookMutators = {
           notebook,
         ),
       ),
-      Effect.as(payload),
       Effect.runPromise,
     ),
 } as const;

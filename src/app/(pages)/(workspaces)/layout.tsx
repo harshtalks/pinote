@@ -3,8 +3,18 @@ import { NoteBookLofiStoreProvider } from "@/lofi/notebooks/notebook.provider";
 import { api } from "@/trpc/server";
 import { Branded } from "@/types/*";
 import { ReactNode } from "react";
+import WorkspacesPageRoute from "./workspaces/route.info";
+import { AuthInterceptor } from "@/auth/interceptor";
+import { headers } from "next/headers";
 
 const WorkspacesLayout = async ({ children }: { children: ReactNode }) => {
+  await new AuthInterceptor()
+    .setPath(WorkspacesPageRoute.navigate())
+    .setHeaders(await headers())
+    .setBase()
+    .withRedirect()
+    .execute();
+
   const { id: userId } = await api.user.me();
   return (
     <NoteBookLofiStoreProvider userId={Branded.UserId(userId)}>

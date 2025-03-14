@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useState } from "react";
+import { Option, pipe } from "effect";
+import NextImage from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 const defaultVectors = [
   "https://cdn.prod.website-files.com/5e51c674258ffe10d286d30a/5e53573df5fa1a2163f8ed70_peep-48.svg",
@@ -105,6 +106,17 @@ export const RandomVectors = ({
 }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const selectedVectors = vectors || defaultVectors;
+  const imageCache = useRef(new Map<string, HTMLImageElement>());
+
+  useEffect(() => {
+    selectedVectors.forEach((src) => {
+      if (!imageCache.current.has(src)) {
+        const img = new Image(200, 200);
+        img.src = src;
+        imageCache.current.set(src, img);
+      }
+    });
+  }, [selectedVectors]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -120,17 +132,27 @@ export const RandomVectors = ({
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [selectedVectors.length]);
+
+  const currentImage = pipe(
+    Option.fromNullable(selectedVectors[activeIndex]),
+    Option.map((el) => imageCache.current.get(el)),
+    Option.filter((el) => !!el),
+    Option.match({
+      onSome: (img) => img,
+      onNone: () => null,
+    }),
+  );
 
   return (
     <div className="text-center">
-      {selectedVectors[activeIndex] && (
-        <Image
-          src={selectedVectors[activeIndex]}
-          alt="Random vector"
-          height={200}
+      {currentImage && (
+        <NextImage
+          src={currentImage.src}
           width={200}
+          height={200}
           className={className}
+          alt="Random vector"
         />
       )}
     </div>

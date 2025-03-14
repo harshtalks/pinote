@@ -46,7 +46,7 @@ export function TitleInput({
     localStore?.mutate.updateNotebook({
       title: e.currentTarget.value,
       id: notebookId,
-      createdAt: Date.now(),
+      updatedAt: Date.now(),
       workspaceId: Branded.WorkspaceId(workspaceId),
     });
   };

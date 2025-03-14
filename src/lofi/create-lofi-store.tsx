@@ -44,6 +44,7 @@ const localFirstStoreCreator = <T extends MutatorDefs>(
           name: storeKeys[key](userId),
           licenseKey: env.NEXT_PUBLIC_REPLICACHE_KEY,
           pushURL: "/api/lofi/push",
+          pullURL: "/api/lofi/pull",
           ...rest,
         }),
         setStoreAndReturn,

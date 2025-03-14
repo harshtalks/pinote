@@ -2,21 +2,20 @@ import { readSessionFromCookieAndValidate } from "@/auth/auth.handlers";
 import { provideDB } from "@/db/*";
 import { Client, ClientGroup, Notebook } from "@/db/schema/*";
 import { PrefixedIDs } from "@/db/schema/schema.helper";
-import {
-  isMutatorKeyOfNotebook,
-  NotebookMutatorKeys,
-} from "@/lofi/notebooks/notebook.mutators";
+import { isMutatorKeyOfNotebook } from "@/lofi/notebooks/notebook.mutators";
 import { processNotebookMutation } from "@/lofi/notebooks/process-mutations";
-import { replicacheRepo } from "@/repositories/*";
+import { notebookRepo, replicacheRepo } from "@/repositories/*";
 import { Branded } from "@/types/*";
 import { httpError } from "@/utils/*";
-import { Effect, Either, Match, pipe } from "effect";
+import { Duration, Effect, Either, Match, pipe } from "effect";
 import { NextRequest, NextResponse } from "next/server";
 import { PushRequestV1 } from "replicache";
 
 export const POST = (request: NextRequest) => {
   return pipe(
     Effect.gen(function* () {
+      const t1 = Duration.millis(Date.now());
+
       const pushRequestBody = yield* pipe(
         Effect.promise(() => request.json()),
         Effect.andThen((data) => data as PushRequestV1),
@@ -58,39 +57,39 @@ export const POST = (request: NextRequest) => {
       );
 
       console.log(pushRequestBody.mutations);
+      for (const mutation of pushRequestBody.mutations) {
+        const client = yield* pipe(
+          mutation.clientID,
+          Branded.ReplicacheClientId,
+          replicacheRepo.getClientByClientId,
+          Effect.filterOrFail(
+            (client) => client.clientGroupId === clientGroup.clientGroupId,
+            () =>
+              new httpError.ForbiddenError({
+                message: "Client does not belong to the client group",
+              }),
+          ),
+          Effect.catchTag("NotFoundError", () =>
+            Effect.succeed({
+              clientId: mutation.clientID,
+              clientGroupId: clientGroup.clientGroupId,
+              lastMutationId: 0,
+              id: PrefixedIDs.lofiClient(),
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            } satisfies Client),
+          ),
+        );
 
-      yield* Effect.forEach(pushRequestBody.mutations, (mutation) =>
-        Effect.gen(function* () {
-          const client = yield* pipe(
-            mutation.clientID,
-            Branded.ReplicacheClientId,
-            replicacheRepo.getClientByClientId,
-            Effect.filterOrFail(
-              (client) => client.clientGroupId === clientGroup.clientGroupId,
-              () =>
-                new httpError.ForbiddenError({
-                  message: "Client does not belong to the client group",
-                }),
-            ),
-            Effect.catchTag("NotFoundError", () =>
-              Effect.succeed({
-                clientId: mutation.clientID,
-                clientGroupId: clientGroup.clientGroupId,
-                lastMutationId: 0,
-                id: PrefixedIDs.lofiClient(),
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-              } satisfies Client),
-            ),
-          );
-          const nextMutationId = client.lastMutationId + 1;
+        const nextMutationId = client.lastMutationId + 1;
 
-          if (mutation.id < nextMutationId || mutation.id > nextMutationId) {
-            yield* new httpError.BadRequestError({
-              message: "Mutation IDs are not in order",
-            });
-          }
-
+        if (mutation.id < nextMutationId) {
+          yield* Effect.logInfo("Mutation ID is already processed.");
+        } else if (mutation.id > nextMutationId) {
+          yield* new httpError.BadRequestError({
+            message: "Mutation IDs are not in order",
+          });
+        } else {
           yield* pipe(
             mutation,
             Match.value,
@@ -99,11 +98,37 @@ export const POST = (request: NextRequest) => {
                 name: isMutatorKeyOfNotebook,
               },
               (mutation) => {
-                return processNotebookMutation({
-                  ...mutation,
-                  name: mutation.name as NotebookMutatorKeys,
-                  args: mutation.args as Notebook,
-                });
+                return pipe(
+                  mutation,
+                  (mutation) => ({
+                    ...mutation,
+                    args: mutation.args as Notebook,
+                  }),
+                  (mutation) =>
+                    notebookRepo
+                      .getNotebookByNotebookId(
+                        Branded.NotebookId(mutation.args.id),
+                      )
+                      .pipe(
+                        Effect.andThen((notebook) =>
+                          processNotebookMutation({
+                            ...mutation,
+                            name: mutation.name,
+                            args: {
+                              ...notebook,
+                              ...mutation.args,
+                            },
+                          }),
+                        ),
+                        Effect.catchAll(() => {
+                          return processNotebookMutation({
+                            ...mutation,
+                            name: mutation.name,
+                            args: mutation.args,
+                          });
+                        }),
+                      ),
+                );
               },
             ),
             Match.orElse(() => {
@@ -120,14 +145,40 @@ export const POST = (request: NextRequest) => {
             ...client,
             lastMutationId: nextMutationId,
           });
-        }),
+        }
+      }
+
+      const t2 = Duration.millis(Date.now());
+
+      const diff = Duration.subtract(t2, t1);
+
+      yield* Effect.logInfo(
+        `Push happened at ${new Date(Duration.toMillis(t2)).toLocaleString()} and it took ${diff.toString()}`,
       );
 
-      return NextResponse.json({ hello: "word" });
+      return NextResponse.json({});
     }),
     Effect.withSpan("replicache.push"),
-    Effect.catchAll((err) => Effect.succeed(NextResponse.json(err))),
-    Effect.catchAllDefect((err) => Effect.succeed(NextResponse.json(err))),
+    Effect.catchAll((err) =>
+      Effect.zipRight(
+        Effect.logError(err),
+        Effect.succeed(
+          NextResponse.json(err, {
+            status: err.status,
+          }),
+        ),
+      ),
+    ),
+    Effect.catchAllDefect((err) =>
+      Effect.zipRight(
+        Effect.logError(err),
+        Effect.succeed(
+          NextResponse.json(err, {
+            status: 500,
+          }),
+        ),
+      ),
+    ),
     provideDB,
     Effect.runPromise,
   );

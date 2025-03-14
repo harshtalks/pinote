@@ -116,14 +116,6 @@ export const getAllClientsForGroup = (
         .from(lofiClient)
         .where(eq(lofiClient.clientGroupId, clientGroupId)),
     ),
-    Effect.filterOrFail(
-      Array.isNonEmptyArray,
-      () =>
-        new httpError.NotFoundError({
-          message:
-            "We could not find any clients associated with given client group",
-        }),
-    ),
     Effect.withSpan("replicacheRepo.getAllClientsForGroup"),
   );
 

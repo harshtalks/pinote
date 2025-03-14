@@ -11,6 +11,7 @@ export const makeDb = Effect.sync(() =>
       authToken: env.DATABASE_AUTH_TOKEN,
     },
     schema: schema,
+    logger: true,
   }),
 );
 

@@ -6,7 +6,7 @@ import { CvrCache, makeCvrKey } from "@/lofi/cvr-cache";
 import { notebookRepo, replicacheRepo } from "@/repositories/*";
 import { Branded } from "@/types/*";
 import { httpError } from "@/utils/*";
-import { Array, Effect, Either, Match, Option } from "effect";
+import { Array, Duration, Effect, Either, Match, Option } from "effect";
 import { pipe } from "effect";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -21,6 +21,8 @@ import { notebookMutationKeys } from "@/lofi/notebooks/*";
 export const POST = (request: NextRequest) => {
   return pipe(
     Effect.gen(function* () {
+      const t1 = Duration.millis(Date.now());
+
       const pullRequestBody = yield* pipe(
         Effect.promise(() => request.json()),
         Effect.andThen((value) => value as PullRequestV1),
@@ -197,6 +199,8 @@ export const POST = (request: NextRequest) => {
         ),
       };
 
+      console.log(patchOperations);
+
       yield* pipe(
         CvrCache,
         Effect.andThen((cache) =>
@@ -209,9 +213,36 @@ export const POST = (request: NextRequest) => {
         ),
       );
 
+      const t2 = Duration.millis(Date.now());
+
+      const diff = Duration.subtract(t2, t1);
+
+      yield* Effect.logInfo(
+        `Pull happened at ${new Date(Duration.toMillis(t2)).toLocaleString()} and it took ${diff.toString()}`,
+      );
       return NextResponse.json(body);
     }),
     Effect.withSpan("replicache.pull"),
+    Effect.catchAll((err) =>
+      Effect.zipRight(
+        Effect.logError(err),
+        Effect.succeed(
+          NextResponse.json(err, {
+            status: err.status,
+          }),
+        ),
+      ),
+    ),
+    Effect.catchAllDefect((err) =>
+      Effect.zipRight(
+        Effect.logError(err),
+        Effect.succeed(
+          NextResponse.json(err, {
+            status: 500,
+          }),
+        ),
+      ),
+    ),
     Effect.provide(CvrCache.Default),
     provideDB,
     Effect.runPromise,

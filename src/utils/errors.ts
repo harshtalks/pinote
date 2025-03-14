@@ -6,6 +6,7 @@ export const getErrorMessage = (error: unknown) => {
 
 export class UncaughtError extends Data.TaggedError("UncaughtError")<{
   message: string;
+  status: 500;
 }> {}
 
 export const annonateErrorLogs = (error: Error) =>

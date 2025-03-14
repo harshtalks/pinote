@@ -56,13 +56,6 @@ export const getNotebooksForWorkspaces = (
         .from(notebooks)
         .where(inArray(notebooks.workspaceId, workspaceIds)),
     ),
-    Effect.filterOrFail(
-      Array.isNonEmptyArray,
-      () =>
-        new httpError.NotFoundError({
-          message: "No notebook found for the given workspace IDs",
-        }),
-    ),
     Effect.withSpan("notebookRepo.getNotebooksForWorkspaces"),
   );
 
@@ -72,12 +65,22 @@ export const getNotebooksByNotebookIds = (notebookIds: Branded.NotebookId[]) =>
     dbTry((db) =>
       db.select().from(notebooks).where(inArray(notebooks.id, notebookIds)),
     ),
+    Effect.withSpan("notebookRepo.getNotebooksByNotebookIds"),
+  );
+
+export const getNotebookByNotebookId = (notebookId: Branded.NotebookId) =>
+  pipe(
+    Database,
+    dbTry((db) =>
+      db.select().from(notebooks).where(eq(notebooks.id, notebookId)),
+    ),
     Effect.filterOrFail(
       Array.isNonEmptyArray,
       () =>
         new httpError.NotFoundError({
-          message: "No notebook found for the given notebook IDs",
+          message: "No notebook found for the given notebook ID",
         }),
     ),
-    Effect.withSpan("notebookRepo.getNotebooksByNotebookIds"),
+    Effect.map((result) => result[0]),
+    Effect.withSpan("notebookRepo.getNotebookByNotebookId"),
   );
