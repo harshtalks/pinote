@@ -115,7 +115,7 @@ const SelectWorkspace = ({
         >
           {workspace.description}
         </p>
-        <p
+        <div
           tabIndex={0}
           className="flex items-center hover:shadow-sm hover:border-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-foreground focus-visible:ring-offset-2 transition-all w-fit rounded-full border border-border bg-background p-1"
         >
@@ -154,7 +154,7 @@ const SelectWorkspace = ({
                 </span>
               ) : null,
           )}
-        </p>
+        </div>
       </div>
     </button>
   );

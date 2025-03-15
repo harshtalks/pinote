@@ -56,7 +56,6 @@ export const POST = (request: NextRequest) => {
         ),
       );
 
-      console.log(pushRequestBody.mutations);
       for (const mutation of pushRequestBody.mutations) {
         const client = yield* pipe(
           mutation.clientID,

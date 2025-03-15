@@ -199,8 +199,6 @@ export const POST = (request: NextRequest) => {
         ),
       };
 
-      console.log(patchOperations);
-
       yield* pipe(
         CvrCache,
         Effect.andThen((cache) =>
